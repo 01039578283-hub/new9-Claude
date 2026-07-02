@@ -847,6 +847,33 @@ ALL_CATEGORIES: list[tuple[str, str]] = [
 ]
 
 
+def region_blocks_html(rows: list[dict[str, str]], subject_label: str) -> str:
+    regions: dict[str, dict[str, list[dict[str, str]]]] = {}
+    for row in rows:
+        region = row.get("지역", "").strip() or "기타"
+        district = row.get("시or구", "").strip() or "기타"
+        regions.setdefault(region, {}).setdefault(district, []).append(row)
+
+    blocks = []
+    for region, districts in regions.items():
+        total = sum(len(items) for items in districts.values())
+        district_blocks = []
+        for district, items in districts.items():
+            links = "\n".join(
+                f'<a href="{slug_ko(r["근처 수업가능 동네"])}/">{esc(r["근처 수업가능 동네"])}</a>'
+                for r in items
+            )
+            district_blocks.append(
+                f'<div class="district-block"><p class="district-title">{esc(district)}<small>{len(items)}곳</small></p>'
+                f'<div class="local-button-grid">{links}</div></div>'
+            )
+        blocks.append(
+            f'<div class="region-block"><div class="region-title"><h3>{esc(region)}</h3>'
+            f'<span>{len(districts)}개 시군구 · {total}개 지역</span></div>{"".join(district_blocks)}</div>'
+        )
+    return "".join(blocks)
+
+
 def hub_pages(rows: list[dict[str, str]]) -> None:
     rep = "/assets/generated/academy-hero-v2.png"
     existing = [(name, desc) for name, desc in ALL_CATEGORIES if (SITE / "전국학원" / name).exists() or name == CATEGORY]
@@ -887,16 +914,7 @@ def hub_pages(rows: list[dict[str, str]]) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(page_shell(head, body), encoding="utf-8")
 
-    groups: dict[str, list[dict[str, str]]] = {}
-    for row in rows:
-        groups.setdefault(row.get("지역", "기타"), []).append(row)
-    blocks = []
-    for region, items in groups.items():
-        links = "\n".join(
-            f'<a href="{slug_ko(r["근처 수업가능 동네"])}/"><strong>{esc(r["근처 수업가능 동네"])}</strong><small>{esc(r.get("시or구", ""))} 중등수학</small></a>'
-            for r in items
-        )
-        blocks.append(f'<div class="region-block"><div class="region-title"><h3>{esc(region)}</h3><span>{len(items)}개 지역</span></div><div class="local-button-grid">{links}</div></div>')
+    region_blocks = region_blocks_html(rows, "중등수학")
     ld_cat = {
         "@context": "https://schema.org",
         "@graph": [
@@ -920,7 +938,7 @@ def hub_pages(rows: list[dict[str, str]]) -> None:
         <h2>{len(rows)}개 지역</h2>
         <p class="lead">서울부터 지방까지 지역명 기준으로 중등수학학원 페이지를 생성했습니다.</p>
       </div>
-      {"".join(blocks)}
+      {region_blocks}
     </section>
   </main>
 {footer_html(2)}"""

@@ -693,16 +693,7 @@ def root_hub() -> None:
 
 def category_hub(rows: list[dict[str, str]]) -> None:
     rep = "/assets/generated/academy-hero-v2.png"
-    groups: dict[str, list[dict[str, str]]] = {}
-    for row in rows:
-        groups.setdefault(row.get("지역", "기타"), []).append(row)
-    blocks = []
-    for region, items in groups.items():
-        links = "\n".join(
-            f'<a href="{slug_ko(r["근처 수업가능 동네"])}/"><strong>{esc(r["근처 수업가능 동네"])}</strong><small>{esc(r.get("시or구", ""))} 중등영어</small></a>'
-            for r in items
-        )
-        blocks.append(f'<div class="region-block"><div class="region-title"><h3>{esc(region)}</h3><span>{len(items)}개 지역</span></div><div class="local-button-grid">{links}</div></div>')
+    region_blocks = shared.region_blocks_html(rows, "중등영어")
     ld_cat = {
         "@context": "https://schema.org",
         "@graph": [
@@ -726,7 +717,7 @@ def category_hub(rows: list[dict[str, str]]) -> None:
         <h2>{len(rows)}개 지역</h2>
         <p class="lead">서울부터 지방까지 지역명 기준으로 중등영어학원 페이지를 생성했습니다.</p>
       </div>
-      {"".join(blocks)}
+      {region_blocks}
     </section>
   </main>
 {footer_html(2)}"""
