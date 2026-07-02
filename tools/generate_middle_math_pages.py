@@ -854,6 +854,12 @@ def region_blocks_html(rows: list[dict[str, str]], subject_label: str) -> str:
         district = row.get("시or구", "").strip() or "기타"
         regions.setdefault(region, {}).setdefault(district, []).append(row)
 
+    jump = "".join(
+        f'<a href="#region-{slug_ko(region)}">{esc(region)}</a>'
+        for region in regions
+    )
+    jump_html = f'<div class="region-jump" aria-label="지역 바로가기">{jump}</div>'
+
     blocks = []
     for region, districts in regions.items():
         total = sum(len(items) for items in districts.values())
@@ -868,10 +874,11 @@ def region_blocks_html(rows: list[dict[str, str]], subject_label: str) -> str:
                 f'<div class="local-button-grid">{links}</div></div>'
             )
         blocks.append(
-            f'<div class="region-block"><div class="region-title"><h3>{esc(region)}</h3>'
-            f'<span>{len(districts)}개 시군구 · {total}개 지역</span></div>{"".join(district_blocks)}</div>'
+            f'<div class="region-block" id="region-{slug_ko(region)}"><div class="region-title"><h3>{esc(region)}</h3>'
+            f'<span>{len(districts)}개 시군구 · {total}개 지역</span></div>'
+            f'<div class="district-grid">{"".join(district_blocks)}</div></div>'
         )
-    return "".join(blocks)
+    return jump_html + "".join(blocks)
 
 
 def hub_pages(rows: list[dict[str, str]]) -> None:

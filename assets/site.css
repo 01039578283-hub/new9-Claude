@@ -927,16 +927,48 @@ h3 {
 }
 
 /* ---------- Directory (hub pages) ---------- */
+.region-jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.region-jump a {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 15px;
+  border: 1px solid var(--gold-line);
+  color: var(--gold);
+  font-size: 12.5px;
+  font-weight: 800;
+}
+
+.region-jump a:hover {
+  background: rgba(169, 129, 47, 0.08);
+}
+
 .region-block {
-  margin-top: 32px;
+  scroll-margin-top: 90px;
+  margin-top: 20px;
+  padding: 24px clamp(16px, 4vw, 28px);
+  border: 1px solid var(--line);
+  background: var(--card);
+}
+
+.region-block:first-of-type {
+  margin-top: 0;
 }
 
 .region-title {
   display: flex;
   align-items: baseline;
   gap: 10px;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--gold-line);
 }
 
@@ -949,19 +981,23 @@ h3 {
   font-size: 12.5px;
 }
 
-.district-block {
-  margin-top: 16px;
+.district-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px 28px;
 }
 
-.district-block:first-child {
-  margin-top: 0;
+.district-block {
+  min-width: 0;
 }
 
 .district-title {
   display: flex;
   align-items: baseline;
   gap: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line-soft);
   color: var(--ink-soft);
   font-size: 12.5px;
   font-weight: 800;
@@ -976,17 +1012,17 @@ h3 {
 .local-button-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 7px;
 }
 
 .local-button-grid a {
   display: inline-flex;
   align-items: center;
-  height: 34px;
-  padding: 0 13px;
+  height: 32px;
+  padding: 0 12px;
   border: 1px solid var(--line);
   color: var(--ink-soft);
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -1095,8 +1131,13 @@ h3 {
   .card-grid,
   .review-grid,
   .link-grid,
-  .category-grid {
+  .category-grid,
+  .district-grid {
     grid-template-columns: 1fr;
+  }
+
+  .region-block {
+    padding: 18px 16px;
   }
 
   .frame img {
