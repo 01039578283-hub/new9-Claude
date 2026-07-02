@@ -710,7 +710,38 @@ def category_hub(rows: list[dict[str, str]]) -> None:
       <p class="eyebrow">MIDDLE SCHOOL ENGLISH DIRECTORY</p>
       <h1>{esc(CATEGORY)}</h1>
       <p class="lead">지역별 중등영어 상담 기준을 한눈에 찾을 수 있도록 정리했습니다. 각 페이지에는 지역·학년·추천학생, 학교 참고 정보, FAQ, 학부모 후기, 내부링크가 함께 구성됩니다.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="tel:{PHONE_DISPLAY}">전화 상담하기</a>
+        <a class="btn btn-ghost" href="../../상담문의/index.html">상담문의</a>
+      </div>
     </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="eyebrow">ABOUT US</p>
+        <h2>{esc(SITE_NAME)}는 중등영어를 이렇게 관리해요</h2>
+        <p class="lead">단어를 많이 외우게 하기보다, 지금 이 학생이 어디서 해석이 막히는지부터 확인해요. 상담에서 시작해 진단, 어휘·문법 관리, 오답 재학습까지 이어갑니다.</p>
+      </div>
+      <div class="timeline">
+        <article class="timeline-item">
+          <div class="timeline-num">01</div>
+          <div class="timeline-body"><h3>상담</h3><p>학교 진도와 최근 성적, 어휘 암기 습관을 먼저 듣고 필요한 방향을 정합니다.</p></div>
+        </article>
+        <article class="timeline-item">
+          <div class="timeline-num">02</div>
+          <div class="timeline-body"><h3>진단</h3><p>어휘가 부족한지, 문법을 적용하지 못하는지, 해석이 안 되는지 원인을 나누어 확인합니다.</p></div>
+        </article>
+        <article class="timeline-item">
+          <div class="timeline-num">03</div>
+          <div class="timeline-body"><h3>어휘·문법 관리</h3><p>단어장 진행과 문법 적용 연습을 함께 기록하며 실행 여부를 확인합니다.</p></div>
+        </article>
+        <article class="timeline-item">
+          <div class="timeline-num">04</div>
+          <div class="timeline-body"><h3>오답 재학습</h3><p>틀린 문장의 원인을 분류하고 비슷한 지문으로 다시 확인해 반복 실수를 줄입니다.</p></div>
+        </article>
+      </div>
+    </section>
+
     <section class="section">
       <div class="section-head">
         <p class="eyebrow">총 지역</p>

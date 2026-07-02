@@ -897,7 +897,25 @@ def hub_pages(rows: list[dict[str, str]]) -> None:
       <p class="eyebrow">NATIONAL ACADEMY HUB</p>
       <h1>전국학원</h1>
       <p class="lead">과목과 학년 카테고리별로 지역 학습관리 페이지를 정리하는 허브입니다.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="tel:{PHONE_DISPLAY}">전화 상담하기</a>
+        <a class="btn btn-ghost" href="../상담문의/index.html">상담문의</a>
+      </div>
     </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="eyebrow">ABOUT US</p>
+        <h2>{esc(SITE_NAME)}는 이런 곳이에요</h2>
+        <p class="lead">{esc(SITE_NAME)}는 성적표의 숫자보다 그 뒤에 있는 이유를 먼저 봐요. 상담, 진단, 플래너, 오답 재학습까지 아이에게 필요한 순서를 함께 찾아드립니다.</p>
+      </div>
+      <div class="card-grid">
+        <article class="info-card"><span class="tag">01</span><h3>지역 데이터 기반</h3><p>실제 센터 주소와 인근 학교 정보를 바탕으로, 지역마다 다른 상담 기준을 정리해 안내해요.</p></article>
+        <article class="info-card"><span class="tag">02</span><h3>과목별 전문 관리</h3><p>수학, 영어처럼 과목마다 약점이 드러나는 지점이 다르기 때문에 과목별로 관리 방향을 나눠요.</p></article>
+        <article class="info-card"><span class="tag">03</span><h3>학년별 우선순위</h3><p>자유학기제, 첫 내신, 고입 준비처럼 시기마다 필요한 게 달라 학년에 맞춰 순서를 정해요.</p></article>
+      </div>
+    </section>
+
     <section class="section">
       <div class="section-head">
         <p class="eyebrow">구조 안내</p>
@@ -931,7 +949,38 @@ def hub_pages(rows: list[dict[str, str]]) -> None:
       <p class="eyebrow">MIDDLE SCHOOL MATH DIRECTORY</p>
       <h1>{esc(CATEGORY)}</h1>
       <p class="lead">지역별 중등수학 상담 기준을 한눈에 찾을 수 있도록 정리했습니다. 각 페이지에는 지역·학년·추천학생, 학교 참고 정보, FAQ, 학부모 후기, 내부링크가 함께 구성됩니다.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="tel:{PHONE_DISPLAY}">전화 상담하기</a>
+        <a class="btn btn-ghost" href="../../상담문의/index.html">상담문의</a>
+      </div>
     </section>
+
+    <section class="section">
+      <div class="section-head">
+        <p class="eyebrow">ABOUT US</p>
+        <h2>{esc(SITE_NAME)}는 중등수학을 이렇게 관리해요</h2>
+        <p class="lead">문제를 많이 풀리는 것보다, 지금 이 학생에게 필요한 순서를 먼저 찾는 것을 중요하게 생각합니다. 상담에서 시작해 진단, 플래너, 오답 재학습까지 하나의 흐름으로 이어갑니다.</p>
+      </div>
+      <div class="timeline">
+        <article class="timeline-item">
+          <div class="timeline-num">01</div>
+          <div class="timeline-body"><h3>상담</h3><p>학교, 최근 성적, 현재 학습 습관을 먼저 듣고 우선순위를 함께 정합니다.</p></div>
+        </article>
+        <article class="timeline-item">
+          <div class="timeline-num">02</div>
+          <div class="timeline-body"><h3>진단</h3><p>개념 부족인지, 계산 실수인지, 문제 해석의 문제인지 원인을 나누어 확인합니다.</p></div>
+        </article>
+        <article class="timeline-item">
+          <div class="timeline-num">03</div>
+          <div class="timeline-body"><h3>플래너 관리</h3><p>학습량과 실행 결과를 기록하며 계획과 실제 공부 사이의 간격을 줄여갑니다.</p></div>
+        </article>
+        <article class="timeline-item">
+          <div class="timeline-num">04</div>
+          <div class="timeline-body"><h3>오답 재학습</h3><p>틀린 이유를 분류하고 비슷한 유형을 다시 풀어보며 반복되는 실수를 줄입니다.</p></div>
+        </article>
+      </div>
+    </section>
+
     <section class="section">
       <div class="section-head">
         <p class="eyebrow">총 지역</p>
