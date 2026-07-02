@@ -3,3 +3,6 @@ __pycache__/
 .vercel
 .env.local
 node_modules/
+
+.vercel
+.env*

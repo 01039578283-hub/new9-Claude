@@ -18,6 +18,7 @@ SITE_NAME = "코칭아카데미"
 CATEGORY = "중등수학학원"
 PHONE_DISPLAY = "010-6839-8283"
 PHONE_LINK = "01068398283"
+CONSULT_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdb2oE5Qk5YS0TfYDxyV1w-IOTkhkjOCmmpAKTI9FmqpVj6Yg/viewform"
 PUBLISH_DATE = "2026-07-02"
 
 
@@ -118,7 +119,7 @@ def footer_html(depth: int) -> str:
   <div class="floating-cta" aria-label="빠른 상담 버튼">
     <a href="tel:{PHONE_DISPLAY}">전화문의</a>
     <a href="sms:{PHONE_LINK}">문자문의</a>
-    <a href="{p}상담문의/index.html">상담문의</a>
+    <a href="{CONSULT_FORM_URL}" target="_blank" rel="noopener noreferrer">상담문의</a>
   </div>"""
 
 
