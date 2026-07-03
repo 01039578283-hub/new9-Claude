@@ -13,10 +13,8 @@ PHONE_LINK = shared.PHONE_LINK
 PUBLISH_DATE = shared.PUBLISH_DATE
 CATEGORY = "중등영어학원"
 
-ALL_CATEGORIES: list[tuple[str, str]] = [
-    ("중등수학학원", "중등수학 내신·서술형·오답관리 지역별 안내"),
-    ("중등영어학원", "중등영어 어휘·문법·독해·내신 지역별 안내"),
-]
+ALL_CATEGORIES = shared.ALL_CATEGORIES
+cross_category_links_html = shared.cross_category_links_html
 
 esc = shared.esc
 slug_ko = shared.slug_ko
@@ -281,7 +279,7 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
     ] + [{"@type": school_type(s), "name": s} for s in schools]
     has_part = [
         "핵심 요약", "학원 선택 가이드", "답변형 중등영어 안내", "지역·학년·추천학생",
-        "일반 학원과의 차이", "센터 기준 정보", "학습료 안내", "상담 전 체크리스트", "FAQ", "학부모 후기", "내부링크",
+        "일반 학원과의 차이", "센터 기준 정보", "학습료 안내", "상담 전 체크리스트", "FAQ", "학부모 후기", "근처 학원페이지",
     ]
 
     ld = {
@@ -582,10 +580,7 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
         f'<a href="{esc(url)}"><strong>{esc(name)} 중등영어학원</strong><small>{esc(area)} 지역 페이지</small></a>'
         for name, url, area in related
     )
-    other_category = "중등수학학원"
-    other_link_html = ""
-    if (SITE / "전국학원" / other_category / slug).exists():
-        other_link_html = f'<a href="/전국학원/{other_category}/{slug}/" class="cross-link"><strong>{esc(local)} {esc(other_category)}</strong><small>같은 지역 다른 과목 바로가기</small></a>'
+    other_link_html = cross_category_links_html(local, slug, CATEGORY)
 
     link_section = f"""    <section class="section">
       <div class="section-head">

@@ -74,6 +74,10 @@ def eul_reul(text: str) -> str:
     return "을" if has_batchim(text) else "를"
 
 
+def eun_neun(text: str) -> str:
+    return "은" if has_batchim(text) else "는"
+
+
 def school_type(name: str) -> str:
     if name.endswith("초"):
         return "ElementarySchool"
@@ -471,7 +475,7 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
     ] + [{"@type": school_type(s), "name": s} for s in schools]
     has_part = [
         "핵심 요약", "학원 선택 가이드", "답변형 중등수학 안내", "지역·학년·추천학생",
-        "일반 학원과의 차이", "센터 기준 정보", "학습료 안내", "상담 전 체크리스트", "FAQ", "학부모 후기", "내부링크",
+        "일반 학원과의 차이", "센터 기준 정보", "학습료 안내", "상담 전 체크리스트", "FAQ", "학부모 후기", "근처 학원페이지",
     ]
 
     ld = {
@@ -773,10 +777,7 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
         f'<a href="{esc(url)}"><strong>{esc(name)} 중등수학학원</strong><small>{esc(area)} 지역 페이지</small></a>'
         for name, url, area in related
     )
-    other_category = "중등영어학원"
-    other_link_html = ""
-    if (SITE / "전국학원" / other_category / slug).exists():
-        other_link_html = f'<a href="/전국학원/{other_category}/{slug}/" class="cross-link"><strong>{esc(local)} {esc(other_category)}</strong><small>같은 지역 다른 과목 바로가기</small></a>'
+    other_link_html = cross_category_links_html(local, slug, CATEGORY)
 
     link_section = f"""    <section class="section">
       <div class="section-head">
@@ -844,7 +845,21 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
 ALL_CATEGORIES: list[tuple[str, str]] = [
     ("중등수학학원", "중등수학 내신·서술형·오답관리 지역별 안내"),
     ("중등영어학원", "중등영어 어휘·문법·독해·내신 지역별 안내"),
+    ("와와학습코칭센터", "영어·수학·국어 전과목 통합 학습관리 지역별 안내"),
 ]
+
+
+def cross_category_links_html(local: str, slug: str, exclude: str) -> str:
+    links = []
+    for name, _ in ALL_CATEGORIES:
+        if name == exclude:
+            continue
+        if (SITE / "전국학원" / name / slug).exists():
+            links.append(
+                f'<a href="/전국학원/{name}/{slug}/" class="cross-link"><strong>{esc(local)} {esc(name)}</strong>'
+                f'<small>같은 지역 다른 카테고리 바로가기</small></a>'
+            )
+    return "".join(links)
 
 
 def region_blocks_html(rows: list[dict[str, str]], subject_label: str) -> str:
