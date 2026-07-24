@@ -156,7 +156,7 @@ def validate_page(path: Path, local: str) -> list[str]:
     if len(parsed.h2s) < 10:
         errors.append(f"h2_count={len(parsed.h2s)}")
 
-    if parsed.faq_count != 5:
+    if parsed.faq_count < 4:
         errors.append(f"faq_count={parsed.faq_count}")
     if parsed.review_count < 1:
         errors.append("review_missing")

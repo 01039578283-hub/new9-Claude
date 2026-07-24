@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import hashlib
 import re
+from collections import Counter
+from itertools import permutations
 from pathlib import Path
 from zipfile import ZipFile
 
@@ -17,6 +20,8 @@ SUBJECT_LABEL = "고1 수학"
 SUBJECT = "수학"
 SUBJECT_EN = "MATH"
 FOCUS_LABEL = "내신·오답관리"
+GRADE_NUMBER = 1
+GRADE_EN = "GRADE 10"
 ZIP_PATH = (
     Path.home()
     / "Desktop"
@@ -63,6 +68,36 @@ def parse_manuscript(text: str) -> dict[str, str]:
     return parsed
 
 
+def public_copy(value: str) -> str:
+    """제작 과정의 용어를 학부모가 읽는 자연스러운 안내 문장으로 바꾼다."""
+    replacements = (
+        ("D열에 제공된 수업학교", "제공 자료에 정리된 수업 가능 학교"),
+        ("D열 수업학교", "제공된 수업 가능 학교"),
+        ("D열에 제공된 학교", "제공 자료에 정리된 학교"),
+        ("D열에 제공된", "제공 자료에 정리된"),
+        ("D열에", "제공 자료에"),
+        ("D열", "제공 자료"),
+        ("AEO형 답변", "질문 중심의 안내"),
+        ("AEO형", "질문 중심의"),
+        ("GEO 관점의 지역 정보", "실제 통학을 판단하는 지역 정보"),
+        ("GEO형", "지역 맥락을 반영한"),
+        ("정보성 교육 페이지", "학습 안내 페이지"),
+        ("정보성 페이지", "학습 안내 페이지"),
+        ("FAQ에서는", "자주 묻는 질문에서는"),
+        ("원고에서는", "안내에서는"),
+        ("원고에는", "안내에는"),
+        ("원고에서", "안내에서"),
+        ("원고는", "안내는"),
+        ("원고를", "안내를"),
+        ("원고가", "안내가"),
+        ("원고", "안내"),
+    )
+    result = value
+    for source, target in replacements:
+        result = result.replace(source, target)
+    return result
+
+
 def load_manuscripts() -> dict[str, dict[str, str]]:
     if not ZIP_PATH.exists():
         raise FileNotFoundError(ZIP_PATH)
@@ -79,6 +114,10 @@ def load_manuscripts() -> dict[str, dict[str, str]]:
             local = title[: -len(suffix)].strip()
             if local in manuscripts:
                 raise ValueError(f"중복 원고: {local}")
+            parsed = {
+                key: value if key == "페이지타이틀" else public_copy(value)
+                for key, value in parsed.items()
+            }
             manuscripts[local] = parsed
     return manuscripts
 
@@ -127,6 +166,39 @@ def paragraph_list(value: str) -> list[str]:
     return [re.sub(r"\s+", " ", part).strip() for part in re.split(r"\n\s*\n", value) if part.strip()]
 
 
+def paragraph_signature(value: str, local: str) -> str:
+    normalized = re.sub(r"\s+", " ", value).strip()
+    normalized = re.sub(re.escape(local), "<LOCAL>", normalized)
+    return re.sub(r"\d+(?:-\d+)*", "<NUM>", normalized)
+
+
+def repeated_body_signatures(
+    manuscripts: dict[str, dict[str, str]],
+) -> set[str]:
+    counts: Counter[str] = Counter()
+    for local, manuscript in manuscripts.items():
+        intro, sections = parse_body(manuscript["본문"])
+        for paragraph in intro:
+            counts[paragraph_signature(paragraph, local)] += 1
+        for _, paragraphs in sections:
+            for paragraph in paragraphs:
+                counts[paragraph_signature(paragraph, local)] += 1
+    return {signature for signature, count in counts.items() if count > 1}
+
+
+def order_sections_for_page(
+    sections: list[tuple[str, list[str]]],
+    local: str,
+) -> list[tuple[str, list[str]]]:
+    if len(sections) < 6:
+        return sections
+    flexible_count = 4
+    patterns = list(permutations(range(flexible_count)))
+    digest = hashlib.sha256(f"{CATEGORY}|{local}|section-order".encode("utf-8")).digest()
+    pattern = patterns[int.from_bytes(digest[:2], "big") % len(patterns)]
+    return [sections[index] for index in pattern] + sections[flexible_count:]
+
+
 def school_names(row: dict[str, str]) -> list[str]:
     result: list[str] = []
     for key in ("타깃학교\n(초)", "타깃학교\n(중)", "타깃학교\n(고)"):
@@ -134,6 +206,119 @@ def school_names(row: dict[str, str]) -> list[str]:
             if name not in result:
                 result.append(name)
     return result
+
+
+def compact_meta_description(
+    value: str,
+    row: dict[str, str],
+    title: str,
+    index: int,
+) -> str:
+    description = re.sub(r"\s+", " ", value).strip()
+    description = description.replace(
+        "학부모를 위한 정보성 원고입니다.",
+        "학부모가 확인할 선택 기준을 안내합니다.",
+    )
+    description = description.replace("정보성 원고", "학습 안내")
+    if 80 <= len(description) <= 155:
+        return description
+
+    local = row["근처 수업가능 동네"].strip()
+    schools = school_names(row)
+    school_reference = (
+        f"{schools[0]} 등 제공 학교 자료"
+        if schools
+        else "학생이 준비한 실제 학교 자료"
+    )
+    first_sentence_match = re.match(r"(.+?[.!?])(?:\s|$)", description)
+    first_sentence = (
+        first_sentence_match.group(1).strip()
+        if first_sentence_match
+        else f"{title} 선택 기준을 안내합니다."
+    )
+    variants = [
+        f"학생 진단, {school_reference}, {FOCUS_LABEL} 관련 상담 전 확인 항목을 정리했습니다.",
+        f"최근 오답과 {school_reference}를 바탕으로 {FOCUS_LABEL} 관련 상담 질문과 위치 정보를 안내합니다.",
+        f"{school_reference}, 학생의 반복 오류와 {FOCUS_LABEL} 관련 상담 전 점검 항목을 확인할 수 있습니다.",
+        f"{local} 학생의 학습 기록, {school_reference}, {FOCUS_LABEL} 관련 상담 기준을 함께 살펴봅니다.",
+    ]
+    candidate = f"{first_sentence} {variants[index % len(variants)]}"
+    if len(candidate) <= 155:
+        return candidate
+
+    suffix = " 핵심 학습관리와 상담 기준을 정리했습니다."
+    allowed = 155 - len(suffix)
+    shortened = candidate[:allowed].rstrip(" ,·")
+    if " " in shortened:
+        shortened = shortened.rsplit(" ", 1)[0].rstrip(" ,·")
+    result = f"{shortened}{suffix}"
+    if len(result) < 80:
+        result = (
+            f"{title}의 학생 진단, 학교 자료 확인, 오답 재학습과 "
+            f"{FOCUS_LABEL} 상담 기준을 정리했습니다."
+        )
+    return result[:155].rstrip(" ,·")
+
+
+def contextualize_repeated_paragraph(
+    value: str,
+    *,
+    row: dict[str, str],
+    local: str,
+    section_title: str,
+    section_index: int,
+    paragraph_index: int,
+    repeated_signatures: set[str],
+    force: bool = False,
+) -> str:
+    if not force and paragraph_signature(value, local) not in repeated_signatures:
+        return value
+
+    region = row.get("지역", "").strip()
+    district = row.get("시or구", "").strip()
+    seed = (
+        f"{CATEGORY}|{local}|{section_title}|{section_index}|{paragraph_index}"
+    ).encode("utf-8")
+    digest = hashlib.sha256(seed).digest()
+    evidence = [
+        "최근 시험지의 오답 표시",
+        "학교 범위표와 교과서 진도",
+        "주간 과제 완료 기록",
+        "해설 없이 다시 푼 결과",
+        "단원별 풀이 시간",
+        "서술 과정에서 빠진 조건",
+        "수업 뒤에 남긴 질문 목록",
+        "시험 전 남은 학습일",
+        "교재별 완료 범위",
+        "오답을 다시 확인할 날짜",
+        "학생이 설명한 풀이 근거",
+    ][digest[0] % 11]
+    outcome = [
+        "다음 점검 시점",
+        "우선 복습 단원",
+        "혼자 다시 풀 문제",
+        "질문 순서",
+        "시험 전 완료 범위",
+        "과제량 조절 시점",
+        "보충 설명이 필요한 개념",
+        "재풀이 성공 여부",
+        "학교 자료 복습 순서",
+        "주간 최소 학습량",
+        "상담 후 점검 항목",
+    ][digest[1] % 11]
+    location = " ".join(part for part in (region, district, local) if part)
+    templates = [
+        f"{location} 상담에서는 {evidence} 항목과 {outcome} 항목을 함께 정리해야 이 기준을 실제 학습 계획으로 옮기기 쉽습니다.",
+        f"이 기준을 {local} 학생에게 적용할 때는 확인 자료로 {evidence} 항목을 살핀 뒤, 후속 계획으로 {outcome} 항목을 정하는 순서가 적절합니다.",
+        f"{local}의 실제 계획에는 {evidence} 점검과 {outcome} 설정이 함께 들어가야 상담 내용이 수업 후에도 이어집니다.",
+        f"학부모가 {local}에서 이 항목을 비교한다면 {evidence} 관리 방식과 {outcome} 설정 기준을 물어볼 수 있습니다.",
+        f"{location}에서는 {evidence} 자료를 판단 근거로 삼고, 상담 후에는 {outcome} 내용을 짧게 정리해 두는 편이 좋습니다.",
+        f"학생의 설명을 들은 뒤 {evidence} 항목을 확인하고 {outcome} 기준을 함께 정하면 {local}의 학습 계획이 더 구체적으로 바뀝니다.",
+        f"{section_title} 내용을 점검할 때 {local}에서는 {evidence} 점검과 {outcome} 설정을 한 흐름으로 연결해 보는 것이 좋습니다.",
+    ]
+    base = value.rstrip()
+    separator = "" if base.endswith((".", "?", "!", "다.", "요.")) else "."
+    return f"{base}{separator} {templates[digest[2] % len(templates)]}"
 
 
 def representative_asset(index: int) -> str:
@@ -173,7 +358,7 @@ def page_ld(
     topics = [
         title,
         SUBJECT_LABEL,
-        f"고등학교 1학년 {SUBJECT}",
+        f"고등학교 {GRADE_NUMBER}학년 {SUBJECT}",
         f"{SUBJECT} 내신",
         "오답 재학습",
         region,
@@ -289,7 +474,7 @@ def page_ld(
                 },
                 "audience": {
                     "@type": "EducationalAudience",
-                    "educationalRole": "고등학교 1학년 학생",
+                    "educationalRole": f"고등학교 {GRADE_NUMBER}학년 학생",
                 },
                 "about": [{"@type": "Thing", "name": topic} for topic in topics[:5]],
                 "mentions": [{"@type": "Thing", "name": topic} for topic in topics[5:]],
@@ -354,13 +539,20 @@ def detail_page(
     index: int,
     manuscript: dict[str, str],
     rows: list[dict[str, str]],
+    repeated_signatures: set[str],
 ) -> str:
     local = row["근처 수업가능 동네"].strip()
     slug = slug_ko(local)
     title = manuscript["페이지타이틀"].strip()
-    description = re.sub(r"\s+", " ", manuscript["메타설명"]).strip()
+    description = compact_meta_description(
+        manuscript["메타설명"],
+        row,
+        title,
+        index,
+    )
     summary = re.sub(r"\s+", " ", manuscript["JSON-LD 요약"]).strip()
     intro, sections = parse_body(manuscript["본문"])
+    sections = order_sections_for_page(sections, local)
     faqs = parse_faq(manuscript["FAQ"])
     reviews = paragraph_list(manuscript["학부모후기"])
     canonical = f"/{PARENT}/{CATEGORY}/{slug}/"
@@ -418,13 +610,45 @@ def detail_page(
         ld,
     )
 
-    intro_html = "".join(f"<p>{esc(paragraph)}</p>" for paragraph in intro)
+    rendered_intro = [
+        contextualize_repeated_paragraph(
+            paragraph,
+            row=row,
+            local=local,
+            section_title=f"{title} 핵심 요약",
+            section_index=-1,
+            paragraph_index=paragraph_index,
+            repeated_signatures=repeated_signatures,
+        )
+        for paragraph_index, paragraph in enumerate(intro)
+    ]
+    rendered_sections = [
+        (
+            section_title,
+            [
+                contextualize_repeated_paragraph(
+                    paragraph,
+                    row=row,
+                    local=local,
+                    section_title=section_title,
+                    section_index=section_index,
+                    paragraph_index=paragraph_index,
+                    repeated_signatures=repeated_signatures,
+                )
+                for paragraph_index, paragraph in enumerate(paragraphs)
+            ],
+        )
+        for section_index, (section_title, paragraphs) in enumerate(sections)
+    ]
+    intro_html = "".join(
+        f"<p>{esc(paragraph)}</p>" for paragraph in rendered_intro
+    )
     section_html = "\n".join(
         f"""      <article class="manuscript-card">
         <h2>{esc(section_title)}</h2>
         {''.join(f'<p>{esc(paragraph)}</p>' for paragraph in paragraphs)}
       </article>"""
-        for section_title, paragraphs in sections
+        for section_title, paragraphs in rendered_sections
     )
     faq_html = "\n".join(
         f'<details class="faq-item"{" open" if i == 0 else ""}><summary>{esc(question)}</summary><p>{esc(answer)}</p></details>'
@@ -454,6 +678,8 @@ def detail_page(
     subject_labels = {
         "고1수학학원": "고1 수학학원",
         "고1영어학원": "고1 영어학원",
+        "고2수학학원": "고2 수학학원",
+        "고2영어학원": "고2 영어학원",
     }
     for category, label in subject_labels.items():
         if category == CATEGORY:
@@ -483,7 +709,7 @@ def detail_page(
   <main>
     <section class="page-hero">
       <p class="breadcrumb"><a href="../../../index.html">홈</a><span>/</span><a href="../../index.html">{PARENT}</a><span>/</span><a href="../index.html">{CATEGORY}</a><span>/</span><span>{esc(title)}</span></p>
-      <p class="eyebrow">GRADE 10 {SUBJECT_EN} LOCAL GUIDE</p>
+      <p class="eyebrow">{GRADE_EN} {SUBJECT_EN} LOCAL GUIDE</p>
       <h1>{esc(title)}</h1>
       <p class="lead">{esc(description)}</p>
       <div class="badge-row"><span>{esc(region)}</span><span>{esc(district)}</span><span>{esc(SUBJECT_LABEL)}</span><span>{esc(FOCUS_LABEL)}</span></div>
@@ -612,6 +838,8 @@ def parent_hub(rows: list[dict[str, str]]) -> None:
     category_meta = {
         "고1수학학원": "고1 수학 내신·오답·학습계획 안내",
         "고1영어학원": "고1 영어 어휘·문법·독해·내신 안내",
+        "고2수학학원": "고2 수학 내신·오답·취약단원 학습관리 안내",
+        "고2영어학원": "고2 영어 어휘·구문·독해·서술형 학습관리 안내",
     }
     available_categories = [
         name
@@ -703,7 +931,7 @@ def category_hub(rows: list[dict[str, str]]) -> None:
   <main>
     <section class="page-hero">
       <p class="breadcrumb"><a href="../../index.html">홈</a><span>/</span><a href="../index.html">{PARENT}</a><span>/</span><span>{CATEGORY}</span></p>
-      <p class="eyebrow">GRADE 10 {SUBJECT_EN} DIRECTORY</p>
+      <p class="eyebrow">{GRADE_EN} {SUBJECT_EN} DIRECTORY</p>
       <h1>{CATEGORY}</h1>
       <p class="lead">지역별 {esc(SUBJECT_LABEL)} {esc(FOCUS_LABEL)} 기준을 찾을 수 있도록 {len(rows)}개 동네 페이지를 시도·시군구별로 정리했습니다.</p>
     </section>
@@ -734,6 +962,7 @@ def main() -> None:
         extra = sorted(manuscripts.keys() - locals_in_csv)
         raise ValueError(f"지역 대응 불일치: missing={missing}, extra={extra}")
 
+    repeated_signatures = repeated_body_signatures(manuscripts)
     parent_hub(rows)
     category_hub(rows)
     for index, row in enumerate(rows):
@@ -741,10 +970,19 @@ def main() -> None:
         out = SITE / PARENT / CATEGORY / slug_ko(local) / "index.html"
         out.parent.mkdir(parents=True, exist_ok=True)
         out.write_text(
-            detail_page(row, index, manuscripts[local], rows),
+            detail_page(
+                row,
+                index,
+                manuscripts[local],
+                rows,
+                repeated_signatures,
+            ),
             encoding="utf-8",
         )
-    print(f"generated parent={PARENT} category={CATEGORY} local_pages={len(rows)}")
+    print(
+        f"generated parent={PARENT} category={CATEGORY} "
+        f"local_pages={len(rows)} contextualized_patterns={len(repeated_signatures)}"
+    )
 
 
 if __name__ == "__main__":
