@@ -8,6 +8,9 @@ import re
 import shutil
 import zlib
 from pathlib import Path
+from urllib.parse import quote
+
+from PIL import Image
 
 
 SITE = Path(__file__).resolve().parents[1]
@@ -20,6 +23,8 @@ PHONE_DISPLAY = "010-6839-8283"
 PHONE_LINK = "01068398283"
 CONSULT_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdb2oE5Qk5YS0TfYDxyV1w-IOTkhkjOCmmpAKTI9FmqpVj6Yg/viewform"
 PUBLISH_DATE = "2026-07-02"
+MODIFIED_DATE = "2026-07-24"
+DOMAIN = "https://xn--2z1b50xixca111l.com"
 
 
 # ---------------------------------------------------------------------------
@@ -51,8 +56,32 @@ def seed_for(*parts: str) -> int:
     return zlib.crc32("::".join(parts).encode("utf-8"))
 
 
+def absolute_url(value: str) -> str:
+    """Return a single, encoded production URL for site-relative paths."""
+    if value.startswith(("http://", "https://")):
+        return value
+    if value.startswith("/"):
+        return DOMAIN + quote(value, safe="/:#?&=%")
+    return value
+
+
+def absolute_site_urls(value: object) -> object:
+    """Recursively make JSON-LD site paths absolute without changing copy."""
+    if isinstance(value, dict):
+        return {key: absolute_site_urls(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [absolute_site_urls(item) for item in value]
+    if isinstance(value, str):
+        return absolute_url(value)
+    return value
+
+
 def json_script(data: dict) -> str:
-    return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+    return json.dumps(
+        absolute_site_urls(data),
+        ensure_ascii=False,
+        separators=(",", ":"),
+    )
 
 
 def rel_prefix(depth: int) -> str:
@@ -88,6 +117,37 @@ def school_type(name: str) -> str:
     return "School"
 
 
+def image_size(asset_path: str) -> tuple[int, int]:
+    """Return intrinsic dimensions for a site-relative image."""
+    path = SITE / asset_path
+    try:
+        with Image.open(path) as image:
+            return image.size
+    except (FileNotFoundError, OSError):
+        return (1, 1)
+
+
+def center_entity_id(center: str, address: str) -> str:
+    """Keep one provider entity stable across category and service-area pages."""
+    key = seed_for(center.strip(), address.strip())
+    return f"/#center-{key:08x}"
+
+
+def learning_case_lines(local: str, district: str, subject: str) -> list[str]:
+    """Neutral consultation examples; these are not represented as customer reviews."""
+    bank = [
+        f"{local} {subject} 상담에서는 최근 점수보다 틀린 문제의 원인을 먼저 나눕니다. 개념 누락, 문제 해석, 계산 실수 가운데 반복되는 지점을 확인합니다.",
+        f"{district} 학교 일정에 맞춘 학습이 필요한 경우에는 시험 범위와 남은 기간을 확인한 뒤, 복습과 문제 풀이의 우선순위를 정합니다.",
+        f"계획은 세우지만 실행 기록이 남지 않는 학생은 하루 분량을 작게 나누고, 완료 여부와 다시 볼 문제를 같은 플래너에 표시하도록 안내합니다.",
+        f"오답을 답만 고쳐 두는 학생은 왜 틀렸는지를 짧게 적고 비슷한 문제를 다시 풀어, 같은 실수가 반복되는지 확인합니다.",
+        f"{local}에서 학원을 비교할 때에는 수업 횟수만 보지 않고 학생이 질문하고 피드백을 받는 방식, 재학습 확인 절차까지 함께 살펴보는 것이 좋습니다.",
+        f"선행보다 복습이 먼저 필요한 학생은 현재 학년 진도와 이전 단원의 연결 개념을 함께 점검한 뒤 학습 순서를 조정합니다.",
+        f"서술형에서 감점이 잦은 학생은 풀이 과정을 말과 식으로 설명해 보고, 채점 기준에 필요한 표현이 빠지지 않았는지 확인합니다.",
+        f"상담 전 최근 시험지와 사용 교재를 준비하면 {subject}에서 막히는 단원과 필요한 학습량을 더 구체적으로 정리할 수 있습니다.",
+    ]
+    return pick(bank, 4, local, subject, "learning-case")
+
+
 # ---------------------------------------------------------------------------
 # page shell (nav / footer / head)
 # ---------------------------------------------------------------------------
@@ -101,7 +161,7 @@ def nav_html(depth: int, active: str = "전국학원") -> str:
         ("전국학원", f"{p}전국학원/index.html"),
     ]
     items = "\n".join(
-        f'        <a{" class=\"active\"" if name == active else ""} href="{href}">{name}</a>'
+        f'        <a{" class=\"active\" aria-current=\"page\"" if name == active else ""} href="{href}">{name}</a>'
         for name, href in links
     )
     return f"""  <header class="nav-wrap">
@@ -129,6 +189,8 @@ def footer_html(depth: int) -> str:
 
 def head_html(title: str, description: str, depth: int, canonical: str, og_type: str, image: str, ld: dict) -> str:
     p = rel_prefix(depth)
+    canonical_url = absolute_url(canonical)
+    image_url = absolute_url(image)
     return f"""<!doctype html>
 <html lang="ko">
 <head>
@@ -137,15 +199,12 @@ def head_html(title: str, description: str, depth: int, canonical: str, og_type:
   <title>{esc(title)}</title>
   <meta name="description" content="{esc(description)}">
   <meta name="robots" content="index,follow,max-image-preview:large">
-  <link rel="canonical" href="{esc(canonical)}">
+  <link rel="canonical" href="{esc(canonical_url)}">
   <meta property="og:type" content="{esc(og_type)}">
   <meta property="og:title" content="{esc(title)}">
   <meta property="og:description" content="{esc(description)}">
-  <meta property="og:url" content="{esc(canonical)}">
-  <meta property="og:image" content="{esc(image)}">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta property="og:url" content="{esc(canonical_url)}">
+  <meta property="og:image" content="{esc(image_url)}">
   <link rel="icon" type="image/png" href="{p}assets/favicon.png">
   <link rel="apple-touch-icon" href="{p}assets/favicon.png">
   <link rel="stylesheet" href="{p}assets/site.css">
@@ -177,7 +236,7 @@ def find_map(row: dict[str, str]) -> str:
             p = maps_dir / f"{base}{ext}"
             if p.exists():
                 return f"assets/maps/{p.name}"
-    return "assets/centers/common/local6839.jpg"
+    return "assets/centers/common/local6839.webp"
 
 
 def choose_rep_images(rows: list[dict[str, str]]) -> list[str]:
@@ -407,15 +466,17 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
     title = f"{local} 중등수학학원"
     description = f"{region} {district} {local} 중학생을 위한 중등수학학원 안내입니다. 학교 내신 범위, 서술형 대비, 오답 재학습, 플래너 실행 기준을 상담 전에 확인할 수 있습니다."
     canonical = f"/전국학원/{CATEGORY}/{slug}/"
-    org_id = f"{canonical}#organization"
+    org_id = center_entity_id(center, address)
     webpage_id = f"{canonical}#webpage"
     article_id = f"{canonical}#article"
     service_id = f"{canonical}#service"
     breadcrumb_id = f"{canonical}#breadcrumb"
     faq_id = f"{canonical}#faq"
     rep_root = "/" + rep_image.replace("\\", "/")
-    center_img = "assets/centers/common/seoul6839.jpg" if region == "서울" else "assets/centers/common/local6839.jpg"
+    center_img = "assets/centers/common/seoul6839.webp" if region == "서울" else "assets/centers/common/local6839.webp"
     map_img = find_map(row)
+    center_width, center_height = image_size(center_img)
+    map_width, map_height = image_size(map_img)
 
     middle_schools = split_items(row.get("타깃학교\n(중)", ""))
     elementary_schools = split_items(row.get("타깃학교\n(초)", ""))
@@ -435,18 +496,12 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
                for p in pick(ANSWER_BANK, 4, local, "answer")]
     checklist = [fmt_pair(p, local=local, district=district, title=title, region=region)
                  for p in pick(CHECKLIST_BANK, 4, local, "checklist")]
-    review_lines = pick(REVIEW_BANK, 6, local, "review")
+    case_lines = learning_case_lines(local, district, "중등수학")
     summary_intro = pick(SUMMARY_INTROS, 1, local, "summary")[0].format(local=local)
     manu_intro = pick(MANUSCRIPT_INTRO, 1, local, "manu-intro")[0]
     manu_outro = pick(MANUSCRIPT_OUTRO, 1, local, "manu-outro")[0]
     location_ref = address if address else "상담 시 안내되는 위치"
     variant = "A" if seed_for(local, "compare") % 2 == 0 else "B"
-
-    rng = random.Random(seed_for(local, "review-rating"))
-    reviews = []
-    for i, text in enumerate(review_lines):
-        rating = 4 if i == len(review_lines) - 1 and rng.random() < 0.4 else 5
-        reviews.append({"body": text, "rating": rating})
 
     related_source = [r for r in all_rows if r.get("시or구") == district and r.get("근처 수업가능 동네") != local]
     if len(related_source) < 6:
@@ -475,7 +530,7 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
     ] + [{"@type": school_type(s), "name": s} for s in schools]
     has_part = [
         "핵심 요약", "학원 선택 가이드", "답변형 중등수학 안내", "지역·학년·추천학생",
-        "일반 학원과의 차이", "센터 기준 정보", "학습료 안내", "상담 전 체크리스트", "FAQ", "학부모 후기", "근처 학원페이지",
+        "일반 학원과의 차이", "센터 기준 정보", "교습비 확인", "상담 전 체크리스트", "FAQ", "학습 상담 사례", "근처 학원페이지",
     ]
 
     ld = {
@@ -509,18 +564,8 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
             {
                 "@type": ["EducationalOrganization", "LocalBusiness"],
                 "@id": org_id,
-                "name": title,
-                "alternateName": [SITE_NAME, center, f"{local} 중등수학 학습관리"],
-                "url": canonical,
-                "telephone": PHONE_DISPLAY,
-                "openingHours": "Mo-Sa 12:00-24:00",
-                "openingHoursSpecification": [{
-                    "@type": "OpeningHoursSpecification",
-                    "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                    "opens": "12:00",
-                    "closes": "24:00",
-                }],
-                "areaServed": {"@type": "Place", "name": local},
+                "name": center,
+                "alternateName": [SITE_NAME],
                 "address": {
                     "@type": "PostalAddress",
                     "streetAddress": address,
@@ -528,17 +573,6 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
                     "addressLocality": district,
                     "addressCountry": "KR",
                 },
-                "knowsAbout": ["중등수학", "중학교 내신 대비", "서술형 답안 작성", "오답 재학습", "플래너 관리", "중학생 학습 상담"],
-                "makesOffer": [
-                    {"@type": "Offer", "itemOffered": {"@type": "Service", "name": f"{local} 중등수학 진단 상담", "serviceType": "TutoringService"}},
-                    {"@type": "Offer", "itemOffered": {"@type": "Service", "name": f"{local} 중학교 내신 서술형 대비", "serviceType": "TutoringService"}},
-                    {"@type": "Offer", "itemOffered": {"@type": "Service", "name": f"{local} 수학 오답 재학습 관리", "serviceType": "TutoringService"}},
-                ],
-                "aggregateRating": {"@type": "AggregateRating", "ratingValue": "4.8", "bestRating": "5", "ratingCount": str(len(reviews)), "reviewCount": str(len(reviews))},
-                "review": [
-                    {"@type": "Review", "author": {"@type": "Person", "name": "학부모"}, "reviewBody": r["body"], "reviewRating": {"@type": "Rating", "ratingValue": str(r["rating"]), "bestRating": "5"}}
-                    for r in reviews
-                ],
             },
             {
                 "@type": "Article",
@@ -548,7 +582,7 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
                 "image": [rep_root, "/" + center_img, "/" + map_img],
                 "inLanguage": "ko-KR",
                 "datePublished": PUBLISH_DATE,
-                "dateModified": PUBLISH_DATE,
+                "dateModified": MODIFIED_DATE,
                 "author": {"@id": org_id},
                 "publisher": {"@type": "Organization", "name": SITE_NAME, "url": "/"},
                 "mainEntityOfPage": {"@id": webpage_id},
@@ -599,8 +633,8 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
         ],
     }
 
-    rep_rel = "../../../" + rep_image
     center_rel = "../../../" + center_img
+    center_mobile_rel = center_rel.replace(".webp", "-mobile.webp")
     map_rel = "../../../" + map_img
     head = head_html(f"{title} | {SITE_NAME}", description, 3, canonical, "article", rep_root, ld)
 
@@ -608,10 +642,9 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
     badge_row = f'<div class="badge-row"><span>{esc(region)}</span><span>{esc(district)}</span><span>중등수학</span><span>내신·서술형·오답관리</span></div>'
 
     media_section = f"""    <section class="section">
-      <img src="{esc(rep_rel)}" alt="{esc(title + ' ' + SITE_NAME + ' 대표')}" style="display:none;">
       <div class="media-row">
-        <figure class="frame"><img src="{esc(center_rel)}" alt="{esc(title + ' 본문 ' + SITE_NAME)}"></figure>
-        <figure class="frame"><img src="{esc(map_rel)}" alt="{esc(title + ' 지도 ' + SITE_NAME)}"></figure>
+        <figure class="frame"><picture><source media="(max-width: 640px)" srcset="{esc(center_mobile_rel)}"><img src="{esc(center_rel)}" alt="{esc(title + ' 본문 ' + SITE_NAME)}" width="{center_width}" height="{center_height}" decoding="async" fetchpriority="high"></picture></figure>
+        <figure class="frame"><img src="{esc(map_rel)}" alt="{esc(title + ' 지도 ' + SITE_NAME)}" width="{map_width}" height="{map_height}" loading="lazy" decoding="async"></figure>
       </div>
       <p class="lead">{esc(center)} 기준으로 {esc(local)} 학생의 중등수학 상담 범위를 확인합니다. 실제 방문·상담 전에는 주소와 이동 동선을 함께 확인해 주세요.</p>
     </section>"""
@@ -635,7 +668,7 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
         <h2>{esc(local)} 중등수학학원, 무엇을 기준으로 볼까요</h2>
       </div>
       <p class="lead">{esc(manu_intro)}</p>
-      <p class="lead">{esc(center)}은 {esc(region)} {esc(district)} {esc(local)} 학생을 기준으로 상담을 진행하며, {esc(', '.join(middle_schools) if middle_schools else '인근 중학교')} 학생들이 주로 문의합니다. 실제 등록 전에는 {esc(location_ref)}{eul_reul(location_ref)} 기준으로 이동 동선과 상담 가능 시간을 확인하는 것이 좋습니다.</p>
+      <p class="lead">{esc(center)}은 {esc(region)} {esc(district)} {esc(local)} 학생을 기준으로 상담을 진행합니다. {esc(', '.join(middle_schools) if middle_schools else '인근 중학교')} 재학생은 학교별 진도와 시험 일정에 따른 수업 가능 여부를 상담에서 확인할 수 있습니다. 실제 등록 전에는 {esc(location_ref)}{eul_reul(location_ref)} 기준으로 이동 동선과 상담 가능 시간을 확인하는 것이 좋습니다.</p>
       <p class="lead">{esc(manu_outro)}</p>
     </section>"""
 
@@ -707,27 +740,22 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
       </div>
     </section>"""
 
-    fee_rows = FEE_TABLE_SEOUL if region == "서울" else FEE_TABLE_OTHER
-    fee_region_label = "서울 지역 기준" if region == "서울" else "서울 외 지역 기준"
-    fee_rows_html = "".join(
-        f'<tr><td>{esc(freq)}</td><td>{esc(el)}</td><td class="highlight">{esc(mid)}</td><td>{esc(hi)}</td></tr>'
-        for freq, el, mid, hi in fee_rows
+    fee_action = (
+        f'<a class="btn btn-primary" href="{esc(fee_link)}" target="_blank" rel="noopener noreferrer">'
+        "센터 교습비 공개 자료 확인</a>"
+        if fee_link
+        else '<a class="btn btn-ghost" href="../../../상담문의/index.html">교습비 확인 문의</a>'
     )
     fee_section = f"""    <section class="section">
       <div class="section-head">
         <p class="eyebrow">TUITION</p>
-        <h2>{esc(local)} 중등수학학원 학습료 안내</h2>
-        <p class="lead">{esc(fee_region_label)}으로 안내되는 학습료입니다. 실제 금액은 상담 시 학생 과정과 교육청 신고 기준에 따라 확인해 주세요.</p>
+        <h2>{esc(local)} 중등수학학원 교습비 확인</h2>
+        <p class="lead">교습비는 학년, 과목, 수업 횟수와 센터의 교육청 신고 내용에 따라 달라질 수 있습니다. 아래 공개 자료 또는 상담을 통해 현재 적용되는 항목과 금액을 확인해 주세요.</p>
       </div>
       <div class="fee-table-wrap">
-        <p class="fee-caption">{esc(fee_region_label)} · 1회 90~100분 수업</p>
-        <table class="fee-table">
-          <thead><tr><th>횟수</th><th>초등</th><th class="highlight">중등</th><th>고등</th></tr></thead>
-          <tbody>
-            {fee_rows_html}
-          </tbody>
-        </table>
-        <p class="fee-note">* 학습료는 지역, 수업 조건, 교육청 신고 기준에 따라 일부 차이가 있을 수 있습니다.</p>
+        <p class="fee-caption">{esc(center)} 교습비 확인 안내</p>
+        <p class="fee-note">공개 자료의 기준일과 과정명, 주당 횟수, 1회 수업 시간을 함께 확인해 주세요. 화면의 안내는 특정 금액을 보장하지 않습니다.</p>
+        <div class="hero-actions">{fee_action}</div>
       </div>
     </section>"""
 
@@ -759,17 +787,18 @@ def local_page(row: dict[str, str], idx: int, rep_image: str, all_rows: list[dic
       </div>
     </section>"""
 
-    review_html = "\n".join(
-        f'<article class="review-card"><span class="stars">{"★" * int(r["rating"])}{"☆" * (5 - int(r["rating"]))}</span><p>{esc(r["body"])}</p></article>'
-        for r in reviews
+    case_html = "\n".join(
+        f'<article class="review-card"><span class="tag">학습 사례</span><p>{esc(text)}</p></article>'
+        for text in case_lines
     )
     review_section = f"""    <section class="section">
       <div class="section-head">
-        <p class="eyebrow">PARENT REVIEW</p>
-        <h2>{esc(local)} 중등수학 상담 후기</h2>
+        <p class="eyebrow">CONSULTATION CASES</p>
+        <h2>{esc(local)} 상담에서 자주 확인하는 학습 사례</h2>
+        <p class="lead">아래 내용은 특정 학생의 후기나 성과를 뜻하지 않으며, 상담에서 확인하는 대표적인 학습 상황을 정리한 예시입니다.</p>
       </div>
       <div class="review-grid">
-        {review_html}
+        {case_html}
       </div>
     </section>"""
 
@@ -870,10 +899,18 @@ def region_blocks_html(rows: list[dict[str, str]], subject_label: str) -> str:
         regions.setdefault(region, {}).setdefault(district, []).append(row)
 
     jump = "".join(
-        f'<a href="#region-{slug_ko(region)}">{esc(region)}</a>'
+        f'<button class="region-filter-button" type="button" data-region-filter="{esc(region)}">{esc(region)}</button>'
         for region in regions
     )
-    jump_html = f'<div class="region-jump" aria-label="지역 바로가기">{jump}</div>'
+    jump_html = f"""<div class="directory-tools">
+      <label for="academy-search"><strong>동네·시군구로 찾기</strong></label>
+      <input class="directory-search" id="academy-search" type="search" inputmode="search" autocomplete="off" placeholder="예: 명일동, 강동구">
+      <div class="region-filter-list" aria-label="시도 필터">
+        <button class="region-filter-button is-active" type="button" data-region-filter="all" aria-pressed="true">전체</button>
+        {jump}
+      </div>
+      <p class="directory-status" id="academy-search-status" role="status" aria-live="polite">전체 {len(rows)}개 지역을 표시합니다.</p>
+    </div>"""
 
     blocks = []
     for region, districts in regions.items():
@@ -881,23 +918,72 @@ def region_blocks_html(rows: list[dict[str, str]], subject_label: str) -> str:
         district_blocks = []
         for district, items in districts.items():
             links = "\n".join(
-                f'<a href="{slug_ko(r["근처 수업가능 동네"])}/">{esc(r["근처 수업가능 동네"])}</a>'
+                f'<a href="{slug_ko(r["근처 수업가능 동네"])}/" data-local-link>{esc(r["근처 수업가능 동네"])}</a>'
                 for r in items
             )
             district_blocks.append(
-                f'<div class="district-block"><p class="district-title">{esc(district)}<small>{len(items)}곳</small></p>'
+                f'<div class="district-block" data-district="{esc(district)}"><p class="district-title">{esc(district)}<small>{len(items)}곳</small></p>'
                 f'<div class="local-button-grid">{links}</div></div>'
             )
         blocks.append(
-            f'<div class="region-block" id="region-{slug_ko(region)}"><div class="region-title"><h3>{esc(region)}</h3>'
+            f'<div class="region-block" id="region-{slug_ko(region)}" data-region="{esc(region)}"><div class="region-title"><h3>{esc(region)}</h3>'
             f'<span>{len(districts)}개 시군구 · {total}개 지역</span></div>'
             f'<div class="district-grid">{"".join(district_blocks)}</div></div>'
         )
     return jump_html + "".join(blocks)
 
 
+def directory_filter_script() -> str:
+    return """<script>
+(() => {
+  const input = document.querySelector('#academy-search');
+  if (!input) return;
+  const status = document.querySelector('#academy-search-status');
+  const buttons = [...document.querySelectorAll('[data-region-filter]')];
+  const regions = [...document.querySelectorAll('[data-region]')];
+  let selected = 'all';
+  const normalize = value => value.toLocaleLowerCase('ko-KR').replace(/\\s+/g, '');
+  const apply = () => {
+    const query = normalize(input.value);
+    let shown = 0;
+    regions.forEach(region => {
+      const regionMatches = selected === 'all' || region.dataset.region === selected;
+      let regionShown = 0;
+      region.querySelectorAll('[data-district]').forEach(district => {
+        let districtShown = 0;
+        const districtName = normalize(district.dataset.district || '');
+        district.querySelectorAll('[data-local-link]').forEach(link => {
+          const match = !query || normalize(link.textContent).includes(query) || districtName.includes(query);
+          link.hidden = !(regionMatches && match);
+          if (!link.hidden) {
+            districtShown += 1;
+            shown += 1;
+          }
+        });
+        district.hidden = districtShown === 0;
+        regionShown += districtShown;
+      });
+      region.hidden = !regionMatches || regionShown === 0;
+    });
+    status.textContent = shown ? `${shown}개 지역을 표시합니다.` : '검색 결과가 없습니다. 동네명이나 시군구를 다시 확인해 주세요.';
+  };
+  buttons.forEach(button => button.addEventListener('click', () => {
+    selected = button.dataset.regionFilter;
+    buttons.forEach(item => {
+      const active = item === button;
+      item.classList.toggle('is-active', active);
+      item.setAttribute('aria-pressed', String(active));
+    });
+    apply();
+  }));
+  input.addEventListener('input', apply);
+  apply();
+})();
+</script>"""
+
+
 def hub_pages(rows: list[dict[str, str]]) -> None:
-    rep = "/assets/generated/academy-hero-v2.png"
+    rep = "/assets/generated/academy-og.jpg"
     existing = [(name, desc) for name, desc in ALL_CATEGORIES if (SITE / "전국학원" / name).exists() or name == CATEGORY]
     ld_root = {
         "@context": "https://schema.org",
@@ -952,7 +1038,8 @@ def hub_pages(rows: list[dict[str, str]]) -> None:
 {footer_html(1)}"""
     out = SITE / "전국학원" / "index.html"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(page_shell(head, body), encoding="utf-8")
+    if not out.exists():
+        out.write_text(page_shell(head, body), encoding="utf-8")
 
     region_blocks = region_blocks_html(rows, "중등수학")
     ld_cat = {
@@ -970,7 +1057,7 @@ def hub_pages(rows: list[dict[str, str]]) -> None:
       <p class="breadcrumb"><a href="../../index.html">홈</a><span>/</span><a href="../index.html">전국학원</a><span>/</span><span>{esc(CATEGORY)}</span></p>
       <p class="eyebrow">MIDDLE SCHOOL MATH DIRECTORY</p>
       <h1>{esc(CATEGORY)}</h1>
-      <p class="lead">지역별 중등수학 상담 기준을 한눈에 찾을 수 있도록 정리했습니다. 각 페이지에는 지역·학년·추천학생, 학교 참고 정보, FAQ, 학부모 후기, 내부링크가 함께 구성됩니다.</p>
+      <p class="lead">지역별 중등수학 상담 기준을 한눈에 찾을 수 있도록 정리했습니다. 각 페이지에서 지역·학년·추천학생, 학교 참고 정보, FAQ, 학습 상담 사례와 관련 지역을 확인할 수 있습니다.</p>
       <div class="hero-actions">
         <a class="btn btn-primary" href="tel:{PHONE_DISPLAY}">전화 상담하기</a>
         <a class="btn btn-ghost" href="../../상담문의/index.html">상담문의</a>
@@ -1007,12 +1094,13 @@ def hub_pages(rows: list[dict[str, str]]) -> None:
       <div class="section-head">
         <p class="eyebrow">총 지역</p>
         <h2>{len(rows)}개 지역</h2>
-        <p class="lead">서울부터 지방까지 지역명 기준으로 중등수학학원 페이지를 생성했습니다.</p>
+        <p class="lead">시도와 시군구로 나누어 가까운 지역의 중등수학 학습관리 안내를 찾을 수 있습니다. 동네명이나 시군구를 입력하면 필요한 지역만 바로 확인할 수 있습니다.</p>
       </div>
       {region_blocks}
     </section>
   </main>
-{footer_html(2)}"""
+{footer_html(2)}
+{directory_filter_script()}"""
     out = SITE / "전국학원" / CATEGORY / "index.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(page_shell(head, body), encoding="utf-8")

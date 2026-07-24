@@ -4,10 +4,12 @@ import json
 import re
 from collections import Counter
 from pathlib import Path
+from urllib.parse import quote
 
 SITE = Path(__file__).resolve().parents[1]
 CATEGORY = "중등수학학원"
 CAT_DIR = SITE / "전국학원" / CATEGORY
+DOMAIN = "https://xn--2z1b50xixca111l.com"
 
 report_lines: list[str] = []
 
@@ -49,7 +51,7 @@ for f in files:
 
     m = CANON_RE.search(text)
     canonical = m.group(1) if m else None
-    expected = f"/전국학원/{CATEGORY}/{slug}/"
+    expected = DOMAIN + quote(f"/전국학원/{CATEGORY}/{slug}/", safe="/")
     if canonical != expected:
         canonical_mismatch.append((slug, canonical))
 
