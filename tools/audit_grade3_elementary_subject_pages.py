@@ -79,6 +79,11 @@ ALL_SUBJECT_CATEGORIES = (
     "중2수학학원",
     "중2영어학원",
     *(category.slug for category in CATEGORIES),
+    "초4영어학원",
+    "초5수학학원",
+    "초5영어학원",
+    "초6수학학원",
+    "초6영어학원",
 )
 
 REQUIRED_DETAIL_TYPES = {

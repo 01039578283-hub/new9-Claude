@@ -176,6 +176,71 @@ CONFIGS: tuple[CategoryConfig, ...] = (
         school_level="초등학교",
         school_key="타깃학교\n(초)",
     ),
+    CategoryConfig(
+        category="초4영어학원",
+        grade_label="초4",
+        grade_number=4,
+        grade_en="GRADE 4",
+        subject="영어",
+        subject_en="ENGLISH",
+        focus_label="어휘·문장 구조·독해 근거",
+        workbook_name="초4 영어학원 원고.xlsx",
+        representative_offset=248,
+        school_level="초등학교",
+        school_key="타깃학교\n(초)",
+    ),
+    CategoryConfig(
+        category="초5수학학원",
+        grade_label="초5",
+        grade_number=5,
+        grade_en="GRADE 5",
+        subject="수학",
+        subject_en="MATH",
+        focus_label="분수·소수·도형·문장제",
+        workbook_name="초5 수학학원 원고.xlsx",
+        representative_offset=341,
+        school_level="초등학교",
+        school_key="타깃학교\n(초)",
+    ),
+    CategoryConfig(
+        category="초5영어학원",
+        grade_label="초5",
+        grade_number=5,
+        grade_en="GRADE 5",
+        subject="영어",
+        subject_en="ENGLISH",
+        focus_label="어휘 확장·문장 구조·독해 근거",
+        workbook_name="초5 영어학원 원고.xlsx",
+        representative_offset=15,
+        school_level="초등학교",
+        school_key="타깃학교\n(초)",
+    ),
+    CategoryConfig(
+        category="초6수학학원",
+        grade_label="초6",
+        grade_number=6,
+        grade_en="GRADE 6",
+        subject="수학",
+        subject_en="MATH",
+        focus_label="분수·소수 연산·비와 비율·문제 해결",
+        workbook_name="초6 수학학원 원고.xlsx",
+        representative_offset=108,
+        school_level="초등학교",
+        school_key="타깃학교\n(초)",
+    ),
+    CategoryConfig(
+        category="초6영어학원",
+        grade_label="초6",
+        grade_number=6,
+        grade_en="GRADE 6",
+        subject="영어",
+        subject_en="ENGLISH",
+        focus_label="어휘·문법 연결·독해·짧은 쓰기",
+        workbook_name="초6 영어학원 원고.xlsx",
+        representative_offset=201,
+        school_level="초등학교",
+        school_key="타깃학교\n(초)",
+    ),
 )
 
 
@@ -361,12 +426,30 @@ ELEMENTARY_MATH_SIGNALS: tuple[TopicSignal, ...] = (
     ),
     TopicSignal(
         "fraction_foundation",
-        "분수 기초",
+        "분수 개념과 연산",
         ("분수", "분모", "분자", "전체", "부분"),
         "전체와 부분의 관계를 그림, 말, 분수로 차례대로 나타낼 수 있는지",
         "분모와 분자의 뜻을 외운 답과 실제 그림에 적용한 답이 일치하는지",
         "한 그림을 여러 분수 표현으로 바꾸고 이유를 말로 설명하기",
         "집에서 물건이나 그림을 나누어 분수 한 가지를 직접 만들어 보기",
+    ),
+    TopicSignal(
+        "decimal_operations",
+        "소수 개념과 연산",
+        ("소수", "소수점", "소수의", "자릿수"),
+        "소수점 위치와 자릿값을 설명한 뒤 계산 결과의 크기를 예상할 수 있는지",
+        "소수 계산에서 자릿값을 맞춘 기록과 계산 뒤 검산한 흔적이 남아 있는지",
+        "소수점과 같은 자릿수를 세로로 맞추고 계산 이유를 한 줄씩 적기",
+        "생활 속 소수 자료 하나를 골라 크기를 비교하고 계산 과정을 설명해 보기",
+    ),
+    TopicSignal(
+        "ratio_proportion",
+        "비와 비율",
+        ("비율", "비례", "비의", "백분율", "비례식"),
+        "두 양의 관계를 비로 나타내고 기준량과 비교하는 양을 구분할 수 있는지",
+        "비율 문제에서 무엇을 기준으로 비교했는지 식과 설명에 함께 표시했는지",
+        "기준량, 비교하는 양, 비율의 순서로 조건을 표와 식에 정리하기",
+        "생활 속 비율 한 가지를 찾아 기준량과 비교하는 양을 말로 설명해 보기",
     ),
     TopicSignal(
         "geometry_measurement",
@@ -419,7 +502,7 @@ ELEMENTARY_ENGLISH_SIGNALS: tuple[TopicSignal, ...] = (
     ),
     TopicSignal(
         "elementary_vocabulary",
-        "기초 어휘",
+        "어휘 확장",
         ("단어", "어휘", "뜻", "암기"),
         "단어의 뜻뿐 아니라 그림이나 짧은 문장에서 쓰임을 설명하는지",
         "바로 기억한 단어와 며칠 뒤에도 읽고 뜻을 말한 단어가 구분되어 있는지",
@@ -437,7 +520,7 @@ ELEMENTARY_ENGLISH_SIGNALS: tuple[TopicSignal, ...] = (
     ),
     TopicSignal(
         "elementary_reading",
-        "짧은 글 읽기",
+        "글의 흐름과 독해 근거",
         ("읽기", "독해", "본문", "내용", "이해"),
         "짧은 글을 읽고 중심 인물과 일어난 일을 자신의 말로 설명하는지",
         "답을 고른 근거가 글의 어느 문장에 있는지 표시했는지",
@@ -470,6 +553,122 @@ ELEMENTARY_ENGLISH_SIGNALS: tuple[TopicSignal, ...] = (
         "계획한 짧은 활동과 실제로 마친 활동이 구분되어 있는지",
         "읽기, 단어, 문장 활동을 짧게 나누고 완료 표시를 남기기",
         "주말에 가장 어려웠던 표현 한 가지를 다시 읽고 말해 보기",
+    ),
+)
+
+
+UPPER_ELEMENTARY_MATH_SIGNALS: tuple[TopicSignal, ...] = (
+    TopicSignal(
+        "upper_fraction_decimal",
+        "분수·소수 연산",
+        ("분수", "소수", "약분", "통분", "분모", "분자", "소수점", "연산"),
+        "분수와 소수의 크기를 먼저 예상하고 계산 원리를 단계별로 설명할 수 있는지",
+        "약분·통분이나 소수점 위치에서 생긴 오류와 계산 실수를 따로 표시했는지",
+        "계산 전 예상값을 적고 각 단계의 근거와 검산 결과를 차례로 남기기",
+        "비슷한 분수·소수 문제 두 개를 골라 풀이 방법의 공통점을 설명해 보기",
+    ),
+    TopicSignal(
+        "upper_ratio_proportion",
+        "비와 비율",
+        ("비율", "비례", "비의", "백분율", "비례식", "기준량"),
+        "기준량과 비교하는 양을 구분한 뒤 두 양의 관계를 식으로 나타낼 수 있는지",
+        "비율 문제에서 기준이 달라진 경우와 계산만 틀린 경우를 나누어 기록했는지",
+        "기준량, 비교하는 양, 비율을 표에 정리한 뒤 식과 답을 연결하기",
+        "생활 속 비율 자료 하나를 골라 기준량과 비교하는 양을 말로 설명해 보기",
+    ),
+    TopicSignal(
+        "upper_geometry_measurement",
+        "도형과 측정 관계",
+        ("도형", "각도", "넓이", "부피", "둘레", "단위", "측정"),
+        "도형의 성질과 길이·넓이·부피의 단위를 문제 조건에 맞게 연결할 수 있는지",
+        "공식을 잘못 고른 경우와 단위 변환에서 막힌 경우를 구분해 표시했는지",
+        "그림에 조건과 단위를 표시하고 사용한 공식의 이유를 한 문장으로 적기",
+        "주변 물체 하나를 골라 어떤 값을 재고 어떤 단위를 쓸지 설명해 보기",
+    ),
+    TopicSignal(
+        "upper_word_problem",
+        "조건 해석과 문제 해결",
+        ("문장제", "조건", "문제 해결", "응용", "서술", "해석"),
+        "긴 문제에서 주어진 조건과 구할 내용을 분리하고 필요한 식을 세울 수 있는지",
+        "조건을 놓친 문제와 풀이 전략을 정하지 못한 문제를 서로 구분했는지",
+        "조건, 구할 내용, 풀이 계획, 계산, 답의 순서로 해결 과정을 정리하기",
+        "문장제 한 문제를 골라 계산보다 먼저 해결 순서를 말로 설명해 보기",
+    ),
+    TopicSignal(
+        "upper_math_explanation",
+        "풀이 근거 설명",
+        ("설명", "풀이", "과정", "이유", "근거"),
+        "정답과 함께 어떤 개념과 순서로 해결했는지를 문장으로 설명할 수 있는지",
+        "맞힌 문제에서도 생략한 조건이나 근거가 없는 풀이를 표시했는지",
+        "풀이마다 사용한 개념, 계산 단계, 결론을 짧은 문장으로 연결하기",
+        "가장 어려웠던 문제 하나의 풀이 근거를 해설 없이 다시 설명해 보기",
+    ),
+    TopicSignal(
+        "upper_math_review",
+        "누적 오답 재확인",
+        ("오답", "복습", "다시", "누적", "확인", "재풀이"),
+        "고친 문제를 며칠 뒤 해설 없이 다시 풀고 같은 오류가 줄었는지 확인하는지",
+        "오답 원인과 재풀이 날짜, 두 번째 결과가 한 기록에 함께 남아 있는지",
+        "오답을 개념, 조건 해석, 계산으로 나누고 다음 확인일을 정하기",
+        "주말에 누적 오답 두 문제를 골라 풀이 근거까지 다시 적어 보기",
+    ),
+)
+
+
+UPPER_ELEMENTARY_ENGLISH_SIGNALS: tuple[TopicSignal, ...] = (
+    TopicSignal(
+        "upper_vocabulary_context",
+        "문맥 속 어휘",
+        ("어휘", "단어", "뜻", "문맥", "암기"),
+        "단어 뜻을 외우는 데서 그치지 않고 문장 안 쓰임과 함께 설명할 수 있는지",
+        "바로 기억한 단어와 며칠 뒤 문맥 속에서도 이해한 단어를 구분했는지",
+        "단어, 뜻, 문맥 단서, 새 예문을 한 묶음으로 정리하기",
+        "새 단어 세 개를 골라 교과서와 다른 짧은 문장에 적용해 보기",
+    ),
+    TopicSignal(
+        "upper_grammar_application",
+        "문법의 문장 적용",
+        ("문법", "문장", "어순", "동사", "시제", "구문"),
+        "문법 규칙을 설명한 뒤 처음 보는 문장의 구조와 의미에 적용할 수 있는지",
+        "규칙은 알지만 문장 해석이나 쓰기에서 적용하지 못한 사례를 표시했는지",
+        "문장의 핵심 구조를 나누고 같은 규칙으로 새 문장 한 개를 만들기",
+        "교과서 문장 하나의 시제나 주어를 바꾸고 달라진 형태를 확인해 보기",
+    ),
+    TopicSignal(
+        "upper_reading_evidence",
+        "독해 흐름과 답의 근거",
+        ("독해", "읽기", "근거", "중심", "요지", "추론", "본문"),
+        "글의 중심 내용과 문단 관계를 설명하고 답을 고른 근거 문장을 찾을 수 있는지",
+        "어휘, 문장 구조, 내용 추론 가운데 독해가 끊긴 지점을 구분했는지",
+        "문단마다 핵심 문장과 연결 표현을 표시한 뒤 답의 근거를 한 줄로 적기",
+        "짧은 글을 읽고 중심 내용과 그 근거가 된 문장을 함께 말해 보기",
+    ),
+    TopicSignal(
+        "upper_sentence_writing",
+        "문장 쓰기와 서술형",
+        ("쓰기", "영작", "서술형", "작문", "문장 만들기"),
+        "주어진 어휘와 문법을 활용해 뜻이 분명한 문장을 완성할 수 있는지",
+        "내용 오류와 어순·시제·문장부호 오류를 따로 표시했는지",
+        "쓸 내용을 먼저 정하고 문장 구조와 표현을 차례로 점검하기",
+        "배운 표현 한 가지를 활용해 자신의 경험을 짧은 문장으로 써 보기",
+    ),
+    TopicSignal(
+        "upper_listening_speaking",
+        "듣기와 말하기 연결",
+        ("듣기", "말하기", "대화", "표현", "발표"),
+        "대화의 목적과 핵심 정보를 듣고 상황에 맞는 표현으로 답할 수 있는지",
+        "들은 표현을 따라 한 경우와 자신의 문장으로 바꾼 경우를 구분했는지",
+        "대화의 핵심 정보와 대답에 필요한 표현을 차례로 정리하기",
+        "배운 표현을 활용해 짧은 질문과 대답을 소리 내어 연습해 보기",
+    ),
+    TopicSignal(
+        "upper_english_review",
+        "누적 오답과 복습 계획",
+        ("오답", "복습", "누적", "반복", "학습 계획", "확인"),
+        "어휘, 문법, 독해 오답을 원인별로 나누고 다시 확인할 순서를 정했는지",
+        "계획한 복습과 실제로 마친 활동, 다음 확인일이 함께 기록되어 있는지",
+        "오답을 어휘, 구조, 근거 찾기로 나누고 우선 복습 항목을 정하기",
+        "주말에 가장 자주 틀린 유형 하나를 골라 근거까지 다시 확인해 보기",
     ),
 )
 
@@ -565,6 +764,10 @@ def read_workbook_cells(path: Path) -> list[str]:
 
 
 def signals_for(config: CategoryConfig) -> tuple[TopicSignal, ...]:
+    if config.is_elementary and config.grade_number >= 5 and config.subject == "수학":
+        return UPPER_ELEMENTARY_MATH_SIGNALS
+    if config.is_elementary and config.grade_number >= 4 and config.subject == "영어":
+        return UPPER_ELEMENTARY_ENGLISH_SIGNALS
     if config.is_elementary and config.subject == "수학":
         return ELEMENTARY_MATH_SIGNALS
     if config.is_elementary and config.subject == "영어":
@@ -587,7 +790,12 @@ def select_signals(raw_html: str, config: CategoryConfig, local: str) -> SourceS
         ranked.append((-score, tie_breaker, signal))
     ranked.sort(key=lambda item: (item[0], item[1]))
     if config.is_elementary and config.subject == "수학":
-        process_codes = {"elementary_explanation", "elementary_math_review"}
+        process_codes = {
+            "elementary_explanation",
+            "elementary_math_review",
+            "upper_math_explanation",
+            "upper_math_review",
+        }
         curriculum = [item[2] for item in ranked if item[2].code not in process_codes]
         process = [item[2] for item in ranked if item[2].code in process_codes]
         chosen = [*curriculum[:2], process[0]]
@@ -1238,7 +1446,13 @@ def localize_sentences(
         "record": f"{learning_anchor} 기록에",
         "material": f"{learning_anchor} 자료에서",
         "feedback": f"{learning_anchor} 피드백",
-        "evidence_table": f"{learning_anchor} 근거표",
+        "evidence_table": (
+            f"{local} {config.grade_label} {config.subject} 학습 근거표",
+            f"{local} {config.grade_label} {config.subject} 학습 기록표",
+            f"{local} {config.grade_label} {config.subject} 수업 기록표",
+            f"{local} {config.grade_label} {config.subject} 공부 기록표",
+            f"{local} {config.grade_label} {config.subject} 복습 기록표",
+        )[learning_variant],
         "loc_topic": f"{learning_anchor}에서는",
         "loc": f"{learning_anchor}에서",
         "gen": f"{learning_anchor}의",
@@ -1445,7 +1659,7 @@ def build_manuscript(
             f"학생이 스스로 설명한 문장은 {primary_object} 확인하는 자료로, 다시 풀어 본 흔적은 {secondary_object} 확인하는 자료로 나눠 보세요.",
             f"학교 자료에는 {primary_subject} 드러난 문항을, 현재 교재에는 {support_object} 다시 확인할 쪽을 표시해 두면 좋습니다.",
             f"오답 옆에는 {primary.label}에서 막힌 이유와 {secondary_object} 다시 확인할 날짜를 서로 다른 색으로 적어 보세요.",
-            f"현재 교재에서는 {primary.label}의 상태를 확인할 쪽과 {support.label}의 다음 행동을 기록할 쪽을 따로 골라 두는 편이 좋습니다.",
+            f"현재 교재에서는 {primary.label} 상태를 확인할 쪽과 {support.label}의 다음 행동을 기록할 쪽을 따로 골라 두는 편이 좋습니다.",
             f"한 번에 여러 원인을 붙이기보다 {primary.label}, {secondary.label}, {support.label} 가운데 가장 먼저 드러난 하나부터 기록하세요.",
             f"진단 표는 {primary.label}의 현재 상태, {secondary.label}의 재확인 여부, {support.label}의 다음 행동으로 나누어 작성할 수 있습니다.",
         ),
@@ -1486,7 +1700,7 @@ def build_manuscript(
     intro = [
         choose(
             (
-                f"{title_object} 찾는다면 문제 수나 진도보다 최근 학습 기록에서 {primary.label}의 상태를 먼저 확인하는 것이 핵심입니다. {consultation_label}에서는 학생의 자료로 {primary.check}를 확인하고 필요한 보완 범위를 정해야 합니다.",
+                f"{title_object} 찾는다면 문제 수나 진도보다 최근 학습 기록에서 {primary.label} 상태를 먼저 확인하는 것이 핵심입니다. {consultation_label}에서는 학생의 자료로 {primary.check}를 확인하고 필요한 보완 범위를 정해야 합니다.",
                 f"{title} 선택의 출발점은 {current_result} 자체보다 {primary.label}에서 반복되는 막힘을 찾는 일입니다. {consultation_label}에서는 학생이 {primary.check}를 {recent_records}에 표시하면 먼저 보완할 범위를 좁힐 수 있습니다.",
                 f"{title}에 관한 짧은 답은 {primary.label} 진단부터 시작하라는 것입니다. {consultation_label}에서 {primary.check} 살펴보면 새 진도와 복습의 순서를 나누기 쉽습니다.",
             ),
@@ -1510,7 +1724,7 @@ def build_manuscript(
         choose(
             (
                 f"{consultation_label}에서 가장 먼저 확인할 내용은 {primary.label}입니다. {consultation_label}에서는 최근 자료로 {primary.check}를 확인하고, 설명이 멈추는 지점을 첫 보완 대상으로 잡는 흐름이 적절합니다.",
-                f"{learning_label}의 시작점은 진도를 앞당기는 일이 아니라 {primary.label}의 빈칸을 찾는 일입니다. {consultation_label}에서는 학생이 {primary.check}를 직접 보여 주면 필요한 설명과 연습량을 나누기 쉽습니다.",
+                f"{learning_label}의 시작점은 진도를 앞당기는 일이 아니라 {primary.label}에서 드러난 빈칸을 찾는 일입니다. {consultation_label}에서는 학생이 {primary.check}를 직접 보여 주면 설명이 필요한 부분과 적절한 연습량을 정하기 쉽습니다.",
                 f"{consultation_label}에서는 문제 수보다 ‘{primary_object} 어떻게 이해했는가’를 설명할 수 있어야 합니다. {consultation_label}의 최근 기록에서 {primary.check}를 먼저 살펴보는 데서 진단이 시작됩니다.",
             ),
             config.category,
@@ -1554,7 +1768,7 @@ def build_manuscript(
             local,
             "recommended-2",
         ),
-        f"{consultation_label}의 적합 여부는 학원 이름이나 한 번의 점수로 결정할 수 없습니다. {consultation_label}에서는 학생이 {support.check}를 실제 자료로 확인하고, 상담 뒤 제안된 계획을 지속할 수 있는지를 함께 판단해야 합니다.",
+        f"{consultation_label}의 적합 여부는 학원 이름이나 한 번의 점수로 결정할 수 없습니다. {consultation_label}에서는 실제 자료에서 {support.check}를 살펴보고, 상담 뒤 제안된 계획을 지속할 수 있는지를 함께 판단해야 합니다.",
         config=config,
         local=local,
         section_code="recommended-student",
@@ -1565,7 +1779,7 @@ def build_manuscript(
             (
                 f"{consultation_label}에서 4주 계획을 논의한다면 첫째 주에는 {first_week_records}{eul_reul(first_week_records)} 모아 {primary_and_secondary}에서 막힌 원인을 나눕니다. {learning_label}의 둘째 주에는 ‘{primary.practice}’를 시도한 뒤 학생이 해설 없이 설명할 수 있는지 확인합니다.",
                 f"{learning_label}의 첫 주는 {primary_and_secondary} 상태를 실제 자료로 확인하는 기간으로 잡을 수 있습니다. {consultation_label}에서는 확인 결과를 바탕으로 둘째 주에 ‘{primary.practice}’를 연습하고, 풀이 이유를 학생의 말로 설명하게 합니다.",
-                f"{consultation_label}에서 첫 두 주의 목표를 정할 때는 첫째 주에 {primary_and_secondary}의 막힘을 찾고, 둘째 주에 ‘{primary.practice}’를 적용해 설명과 풀이가 이어지는지 살펴보는 흐름을 검토할 수 있습니다.",
+                f"{consultation_label}에서 첫 두 주의 목표를 정할 때는 첫째 주에 {primary_and_secondary}에서 막힌 지점을 찾고, 둘째 주에 ‘{primary.practice}’를 적용해 설명과 풀이가 이어지는지 살펴보는 흐름을 검토할 수 있습니다.",
             ),
             config.category,
             local,
@@ -1585,7 +1799,7 @@ def build_manuscript(
             (
                 f"이 4주 흐름은 {consultation_label}에서 비교할 계획 예시일 뿐, 고정 수업 약속이 아닙니다. {consultation_label}의 주차별 분량과 순서는 {schedule_text}{gwa_wa(schedule_text)} 시작 수준을 확인한 뒤 달리 정해야 합니다.",
                 f"{learning_label}의 4주 예시를 채택한다면 완료 기준도 함께 적어야 합니다. {learning_label}에서는 정답 수뿐 아니라 설명 가능 여부, 다시 푼 날짜, 같은 오류의 반복 여부를 남겨야 다음 조정 근거가 생깁니다.",
-                f"{local}에서 다음 평가나 점검까지 4주가 남지 않은 {config.grade_label} 학생에게 {config.subject} 전 단원을 같은 비중으로 적용하기 어렵습니다. {consultation_label}에서 {range_text}{gwa_wa(range_text)} 남은 날을 확인하고 {primary.label} 관련 우선 단원부터 좁혀 보세요.",
+                f"{local}에서 다음 평가나 점검까지 4주가 남지 않은 {config.grade_label} 학생에게 {config.subject} 전 단원을 같은 비중으로 다루기 어렵습니다. {consultation_label}에서 {range_text}{gwa_wa(range_text)} 남은 날을 확인하고 {primary.label} 관련 우선 단원부터 좁혀 보세요.",
             ),
             config.category,
             local,
@@ -1621,7 +1835,7 @@ def build_manuscript(
             (
                 f"{consultation_label}에서 마지막으로 {school_range}{i_ga(school_range)} 반영되는지, {secondary_and_support}{eul_reul(support.label)} 어떤 자료로 다시 확인하는지 질문해 보세요. {consultation_label} 내용을 날짜와 함께 적어 두면 다른 선택지와 비교하기 쉽습니다.",
                 f"{consultation_label}{i_ga(consultation_label)} 끝나면 제안된 첫 주 분량, 학생이 할 일, 다음 확인일을 한 줄씩 정리해 보세요. {consultation_label}의 계획이 실제 일정과 맞지 않으면 등록 전에 조정 가능 여부를 물어보는 것이 좋습니다.",
-                f"{local}에서 {config.grade_label} {config.subject} 수업을 비교하는 학부모는 답변이 학생의 자료에 근거했는지 확인해 주세요. {consultation_label}에서 목표를 점수 약속으로 정하기보다 {primary_and_secondary}의 실행 기준으로 바꾸면 이후 점검이 명확해집니다.",
+                f"{local}에서 {config.grade_label} {config.subject} 수업을 비교하는 학부모는 답변이 학생의 자료에 근거했는지 확인해 주세요. {consultation_label}에서 목표를 점수 약속으로 정하기보다 {primary_and_secondary}별 실행 기준으로 바꾸면 이후 점검이 명확해집니다.",
             ),
             config.category,
             local,
@@ -1718,7 +1932,7 @@ def build_manuscript(
         ),
         (
             f"{learning_label}에서 {secondary.label}{eul_reul(secondary.label)} 보완하려면 무엇부터 해야 하나요?",
-            f"{consultation_label}에서는 {secondary.evidence}를 확인해 현재 막힘의 원인을 먼저 나눕니다. {learning_label}의 시작 행동은 ‘{secondary.practice}’처럼 완료 여부를 확인할 수 있는 크기로 정하는 편이 좋습니다.",
+            f"{consultation_label}에서는 {secondary.evidence}를 확인해 현재 막힘의 원인을 먼저 나눕니다. 첫 실천 항목은 ‘{secondary.practice}’처럼 완료 여부를 확인할 수 있는 크기로 정하는 편이 좋습니다.",
         ),
         (
             f"{local} 학부모는 {config.grade_label} {config.subject} 피드백에서 무엇을 확인해야 하나요?",
@@ -1726,7 +1940,7 @@ def build_manuscript(
         ),
         (
             f"{local} {config.grade_label} {config.subject} 교재와 진도는 어떻게 비교하나요?",
-            f"{consultation_label}에서 현재 교재의 완료 단원, 학교 진도표, 선행과 복습의 비중을 함께 보여 주세요. {learning_label}의 다음 범위는 학교 일정과 이전 단원의 공백, 한 주에 가능한 분량을 확인한 뒤 정해야 합니다.",
+            f"{consultation_label}에서 현재 교재의 완료 단원, 학교 진도표, 선행과 복습의 비중을 함께 보여 주세요. {learning_label}에서 다음에 다룰 범위는 학교 일정과 이전 단원의 공백, 한 주에 가능한 분량을 확인한 뒤 정해야 합니다.",
         ),
         (
             f"{local} {config.grade_label} {config.subject} 수업 시간과 결석 시 보완 방식은 어떻게 확인하나요?",
@@ -1769,7 +1983,7 @@ def build_manuscript(
     )
 
     scenarios = [
-        f"가정 상담 장면: {local}의 한 학부모가 최근 자료 가운데 {primary.label}에서 막힌 문제와 {secondary.label} 관련 학습 기록을 나눠 가져오고, {consultation_label}에서 제안할 첫 주 확인 항목과 다음 점검일을 질문하는 상황을 가정할 수 있습니다. 이 {consultation_label} 장면은 실제 이용 후기나 특정 학생의 성과가 아니며, 상담 준비용 가상 예시입니다. {local}에서 {config.grade_label} {subject_object} 공부하는 학생의 학습 결과는 출발점과 실천 정도에 따라 달라질 수 있습니다.",
+        f"가정 상담 장면: {local}의 한 학부모가 최근 자료 가운데 {primary.label}에서 막힌 문제와 {secondary.label} 관련 학습 기록을 나눠 가져오고, {consultation_label}에서 제안받을 첫 주 확인 항목과 다음 점검일을 질문하는 상황을 가정할 수 있습니다. 이 {consultation_label} 장면은 실제 이용 후기나 특정 학생의 성과가 아니며, 상담 준비용 가상 예시입니다. {local}에서 {config.grade_label} {subject_object} 공부하는 학생의 학습 결과는 출발점과 실천 정도에 따라 달라질 수 있습니다.",
         f"비교 상담 장면: {local}에서 {config.grade_label} {subject_object} 공부하는 학생의 학교 일정과 통학 가능 시간을 적어 두고 {center}에서 {support.label} 관련 기록을 확인하는 방식, 과제 조절 기준, 학부모 공유 항목을 묻는 장면을 생각해 볼 수 있습니다. 이 {consultation_label} 장면에서 비교할 항목은 학생의 실제 자료와 가능한 일정에 맞춰 조정해야 합니다.",
     ]
 

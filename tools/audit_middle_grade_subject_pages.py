@@ -56,6 +56,16 @@ ALL_SUBJECT_CATEGORIES = (
     "중1영어학원",
     "중2수학학원",
     "중2영어학원",
+    "중3수학학원",
+    "중3영어학원",
+    "초3수학학원",
+    "초3영어학원",
+    "초4수학학원",
+    "초4영어학원",
+    "초5수학학원",
+    "초5영어학원",
+    "초6수학학원",
+    "초6영어학원",
 )
 
 REQUIRED_DETAIL_TYPES = {
@@ -1274,7 +1284,7 @@ def validate_parent_hub(audit: Audit) -> None:
             if target:
                 paths.append(target[0])
         expected = {f"/{PARENT}/{name}/" for name in ALL_SUBJECT_CATEGORIES}
-        if len(paths) != 8 or set(paths) != expected:
+        if len(paths) != len(ALL_SUBJECT_CATEGORIES) or set(paths) != expected:
             audit.fail("parent_hub_cards", path, f"count={len(paths)} paths={paths!r}")
 
     item_lists = [node for node in page.graph if "ItemList" in schema_types(node)]
@@ -1284,7 +1294,10 @@ def validate_parent_hub(audit: Audit) -> None:
         urls = {item.get("url") or item.get("item") for item in schema_list_items(node)}
         if urls == expected_urls:
             matching.append(node)
-    if len(matching) != 1 or len(schema_list_items(matching[0])) != 8:
+    if (
+        len(matching) != 1
+        or len(schema_list_items(matching[0])) != len(ALL_SUBJECT_CATEGORIES)
+    ):
         audit.fail("parent_hub_itemlist", path, f"matching={len(matching)}")
     audit.checked("parent_hub")
 
