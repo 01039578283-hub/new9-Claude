@@ -394,11 +394,12 @@ def page_ld(
     org_id = center_entity_id(center, address)
     page_id = f"{canonical}#webpage"
     service_id = f"{canonical}#service"
+    academic_focus = "학교 단원 학습" if SCHOOL_LEVEL_NAME == "초등학교" else f"{SUBJECT} 내신"
     topics = [
         title,
         SUBJECT_LABEL,
         f"{SCHOOL_LEVEL_NAME} {GRADE_NUMBER}학년 {SUBJECT}",
-        f"{SUBJECT} 내신",
+        academic_focus,
         "오답 재학습",
         region,
         district,
@@ -723,6 +724,11 @@ def detail_page(
         "중1영어학원": "중1 영어학원",
         "중2수학학원": "중2 수학학원",
         "중2영어학원": "중2 영어학원",
+        "중3수학학원": "중3 수학학원",
+        "중3영어학원": "중3 영어학원",
+        "초3수학학원": "초3 수학학원",
+        "초3영어학원": "초3 영어학원",
+        "초4수학학원": "초4 수학학원",
     }
     for category, label in subject_labels.items():
         if category == CATEGORY:
@@ -733,7 +739,12 @@ def detail_page(
                 f'<a href="../../{category}/{slug}/index.html"><strong>{esc(local)} {esc(label)}</strong><small>같은 동네 다른 과목 안내</small></a>'
             )
     nationwide_links = []
-    for category in ("중등수학학원", "중등영어학원", "와와학습코칭센터"):
+    nationwide_categories = (
+        ("와와학습코칭센터",)
+        if SCHOOL_LEVEL_NAME == "초등학교"
+        else ("중등수학학원", "중등영어학원", "와와학습코칭센터")
+    )
+    for category in nationwide_categories:
         target = SITE / "전국학원" / category / slug
         if target.exists():
             nationwide_links.append(
@@ -900,6 +911,11 @@ def parent_hub(rows: list[dict[str, str]]) -> None:
         "중1영어학원": "중1 영어 어휘·문장 구조·독해 근거 학습 안내",
         "중2수학학원": "중2 수학 개념 적용·서술형·누적 오답 관리 안내",
         "중2영어학원": "중2 영어 어휘 누적·문법 적용·독해 근거 안내",
+        "중3수학학원": "중3 수학 개념 통합·서술형·고등 기초 연결 안내",
+        "중3영어학원": "중3 영어 어휘·구문·독해 근거·서술형 안내",
+        "초3수학학원": "초3 수학 연산 정확도·개념 설명·문장제 안내",
+        "초3영어학원": "초3 영어 파닉스·기초 어휘·문장 읽기 안내",
+        "초4수학학원": "초4 수학 연산 원리·분수·문장제 풀이 안내",
     }
     available_categories = [
         name
@@ -963,9 +979,10 @@ def parent_hub(rows: list[dict[str, str]]) -> None:
 
 def category_hub(rows: list[dict[str, str]]) -> None:
     canonical = f"/{PARENT}/{CATEGORY}/"
+    learning_scope = "단원 학습" if SCHOOL_LEVEL_NAME == "초등학교" else "내신 준비"
     description = (
         f"전국 {len(rows)}개 동네의 {SUBJECT_LABEL}학원 페이지를 지역별로 정리했습니다. "
-        "동네별 내신 준비, 학교 참고 정보, 상담 기준과 센터 위치를 확인할 수 있습니다."
+        f"동네별 {learning_scope}, 학교 참고 정보, 상담 기준과 센터 위치를 확인할 수 있습니다."
     )
     items = [
         {

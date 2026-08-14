@@ -32,6 +32,8 @@ class CategoryConfig:
     focus_label: str
     workbook_name: str
     representative_offset: int
+    school_level: str = "중학교"
+    school_key: str = "타깃학교\n(중)"
 
     @property
     def subject_label(self) -> str:
@@ -40,6 +42,10 @@ class CategoryConfig:
     @property
     def workbook_path(self) -> Path:
         return SOURCE_DIR / self.workbook_name
+
+    @property
+    def is_elementary(self) -> bool:
+        return self.school_level == "초등학교"
 
 
 @dataclass(frozen=True)
@@ -108,6 +114,67 @@ CONFIGS: tuple[CategoryConfig, ...] = (
         focus_label="어휘 누적·문법 적용·독해 근거",
         workbook_name="중2 영어학원 원고.xlsx",
         representative_offset=279,
+    ),
+    CategoryConfig(
+        category="중3수학학원",
+        grade_label="중3",
+        grade_number=3,
+        grade_en="GRADE 9",
+        subject="수학",
+        subject_en="MATH",
+        focus_label="개념 통합·서술형·고등 기초 연결",
+        workbook_name="중3 수학학원 원고.xlsx",
+        representative_offset=31,
+    ),
+    CategoryConfig(
+        category="중3영어학원",
+        grade_label="중3",
+        grade_number=3,
+        grade_en="GRADE 9",
+        subject="영어",
+        subject_en="ENGLISH",
+        focus_label="어휘·구문·독해 근거·서술형",
+        workbook_name="중3 영어학원 원고.xlsx",
+        representative_offset=124,
+    ),
+    CategoryConfig(
+        category="초3수학학원",
+        grade_label="초3",
+        grade_number=3,
+        grade_en="GRADE 3",
+        subject="수학",
+        subject_en="MATH",
+        focus_label="연산 정확도·개념 설명·문장제",
+        workbook_name="초3 수학학원 원고.xlsx",
+        representative_offset=217,
+        school_level="초등학교",
+        school_key="타깃학교\n(초)",
+    ),
+    CategoryConfig(
+        category="초3영어학원",
+        grade_label="초3",
+        grade_number=3,
+        grade_en="GRADE 3",
+        subject="영어",
+        subject_en="ENGLISH",
+        focus_label="파닉스·기초 어휘·문장 읽기",
+        workbook_name="초3 영어학원.xlsx",
+        representative_offset=62,
+        school_level="초등학교",
+        school_key="타깃학교\n(초)",
+    ),
+    CategoryConfig(
+        category="초4수학학원",
+        grade_label="초4",
+        grade_number=4,
+        grade_en="GRADE 4",
+        subject="수학",
+        subject_en="MATH",
+        focus_label="연산 원리·분수·문장제 풀이",
+        workbook_name="초4 수학학원 원고.xlsx",
+        representative_offset=155,
+        school_level="초등학교",
+        school_key="타깃학교\n(초)",
     ),
 )
 
@@ -273,6 +340,140 @@ ENGLISH_SIGNALS: tuple[TopicSignal, ...] = (
 )
 
 
+ELEMENTARY_MATH_SIGNALS: tuple[TopicSignal, ...] = (
+    TopicSignal(
+        "place_value_calculation",
+        "수 감각과 계산 원리",
+        ("연산", "계산", "수 감각", "자릿값"),
+        "자릿값과 계산 순서를 말로 설명한 뒤 같은 원리를 새 문제에 적용하는지",
+        "답만 고친 것이 아니라 계산 과정에서 멈춘 단계가 표시되어 있는지",
+        "계산 과정을 한 줄씩 나누고 각 단계의 이유를 짧게 설명하기",
+        "하루 뒤 비슷한 계산 두 문제를 풀고 틀린 이유를 한 문장으로 남기기",
+    ),
+    TopicSignal(
+        "multiplication_division",
+        "곱셈·나눗셈 관계",
+        ("곱셈", "나눗셈", "구구단", "몫", "나머지"),
+        "곱셈과 나눗셈의 관계를 그림이나 식으로 바꾸어 설명할 수 있는지",
+        "계산 실수와 문제 상황을 잘못 이해한 경우가 따로 표시되어 있는지",
+        "같은 수 관계를 곱셈식과 나눗셈식으로 각각 써 보기",
+        "생활 속 수량 한 가지를 골라 곱셈식과 나눗셈식으로 바꾸어 보기",
+    ),
+    TopicSignal(
+        "fraction_foundation",
+        "분수 기초",
+        ("분수", "분모", "분자", "전체", "부분"),
+        "전체와 부분의 관계를 그림, 말, 분수로 차례대로 나타낼 수 있는지",
+        "분모와 분자의 뜻을 외운 답과 실제 그림에 적용한 답이 일치하는지",
+        "한 그림을 여러 분수 표현으로 바꾸고 이유를 말로 설명하기",
+        "집에서 물건이나 그림을 나누어 분수 한 가지를 직접 만들어 보기",
+    ),
+    TopicSignal(
+        "geometry_measurement",
+        "도형과 측정",
+        ("도형", "길이", "각도", "들이", "무게", "측정"),
+        "단위와 도형의 성질을 구분하고 문제에 맞는 기준을 고를 수 있는지",
+        "측정값의 단위를 빠뜨린 경우와 계산 자체가 틀린 경우를 구분했는지",
+        "문제의 단위에 표시하고 그림이나 표로 조건을 다시 정리하기",
+        "주변 물건 하나를 재거나 관찰한 뒤 사용한 단위와 이유를 적기",
+    ),
+    TopicSignal(
+        "elementary_word_problem",
+        "문장제 해석",
+        ("문장제", "서술", "조건", "문제 해결", "응용"),
+        "문장에서 주어진 수와 구할 내용을 나누어 표시할 수 있는지",
+        "식을 세우기 전 문제 상황을 자신의 말이나 그림으로 바꾸었는지",
+        "조건, 구할 내용, 식, 답의 순서로 풀이를 정리하기",
+        "짧은 문장제 한 문제를 읽고 식을 세운 이유까지 말해 보기",
+    ),
+    TopicSignal(
+        "elementary_explanation",
+        "풀이 설명",
+        ("설명", "풀이", "과정", "이유"),
+        "정답과 함께 어떤 순서로 해결했는지를 말로 설명할 수 있는지",
+        "답을 맞힌 문제에서도 빠진 조건이나 설명이 없는지",
+        "풀이를 계산, 이유, 답의 세 부분으로 나누어 적기",
+        "가장 자신 있는 문제 하나를 골라 풀이 이유를 가족에게 설명해 보기",
+    ),
+    TopicSignal(
+        "elementary_math_review",
+        "오답 재확인 습관",
+        ("오답", "복습", "다시", "습관", "확인"),
+        "고친 문제를 며칠 뒤 해설 없이 다시 해결할 수 있는지",
+        "틀린 이유와 다시 확인할 날짜가 학습 기록에 함께 남아 있는지",
+        "오답마다 원인 한 가지와 다음 확인일 한 가지를 적기",
+        "주말에 한 주 오답 가운데 두 문제만 골라 스스로 다시 풀기",
+    ),
+)
+
+
+ELEMENTARY_ENGLISH_SIGNALS: tuple[TopicSignal, ...] = (
+    TopicSignal(
+        "phonics_sound",
+        "소리와 철자 연결",
+        ("파닉스", "소리", "철자", "알파벳", "발음"),
+        "글자를 보고 소리를 말하거나 들은 소리를 철자로 고를 수 있는지",
+        "외운 단어와 처음 보는 비슷한 단어에서 같은 소리를 찾는지",
+        "같은 소리가 나는 단어를 묶고 소리 내어 읽기",
+        "짧은 단어 세 개를 듣고 철자와 소리를 함께 확인하기",
+    ),
+    TopicSignal(
+        "elementary_vocabulary",
+        "기초 어휘",
+        ("단어", "어휘", "뜻", "암기"),
+        "단어의 뜻뿐 아니라 그림이나 짧은 문장에서 쓰임을 설명하는지",
+        "바로 기억한 단어와 며칠 뒤에도 읽고 뜻을 말한 단어가 구분되어 있는지",
+        "단어, 그림, 짧은 예문을 한 묶음으로 정리하기",
+        "하루 뒤 단어를 보고 뜻과 짧은 문장을 하나씩 말해 보기",
+    ),
+    TopicSignal(
+        "basic_sentence",
+        "기본 문장 구조",
+        ("문장", "어순", "주어", "동사", "문법"),
+        "누가 무엇을 하는지 기본 어순을 구분해 문장을 읽을 수 있는지",
+        "단어 뜻은 알지만 문장 순서를 바꾸면 해석이 멈추는지",
+        "짧은 문장을 주어, 동사, 나머지 말로 나누어 표시하기",
+        "교과서 문장 하나의 낱말을 바꾸어 새 문장을 만들어 보기",
+    ),
+    TopicSignal(
+        "elementary_reading",
+        "짧은 글 읽기",
+        ("읽기", "독해", "본문", "내용", "이해"),
+        "짧은 글을 읽고 중심 인물과 일어난 일을 자신의 말로 설명하는지",
+        "답을 고른 근거가 글의 어느 문장에 있는지 표시했는지",
+        "문단마다 핵심 낱말 한 개와 내용을 보여 주는 문장 한 개를 고르기",
+        "짧은 글을 소리 내어 읽고 가장 중요한 내용을 한 문장으로 말하기",
+    ),
+    TopicSignal(
+        "listening_speaking",
+        "듣기와 말하기",
+        ("듣기", "말하기", "대화", "표현"),
+        "짧은 안내나 대화를 듣고 필요한 정보를 구분해 말할 수 있는지",
+        "들은 표현을 그대로 따라 한 경우와 상황에 맞게 바꾼 경우가 구분되는지",
+        "짧은 대화를 듣고 핵심 낱말과 대답을 차례로 적기",
+        "배운 표현 한 가지를 가족과 짧은 질문·대답으로 연습하기",
+    ),
+    TopicSignal(
+        "elementary_writing",
+        "짧은 문장 쓰기",
+        ("쓰기", "영작", "문장 만들기", "일기"),
+        "배운 낱말을 활용해 뜻이 분명한 짧은 문장을 완성할 수 있는지",
+        "대문자, 띄어쓰기, 문장부호와 어순 오류를 따로 표시했는지",
+        "말하고 싶은 내용을 정한 뒤 낱말 배열과 문장부호를 확인하기",
+        "교과서 문장을 참고해 자신의 이야기로 한 문장 바꾸어 쓰기",
+    ),
+    TopicSignal(
+        "elementary_english_review",
+        "짧은 반복 학습",
+        ("복습", "반복", "습관", "학습 계획"),
+        "읽기, 듣기, 쓰기 가운데 어떤 활동을 다시 해야 하는지 기록되어 있는지",
+        "계획한 짧은 활동과 실제로 마친 활동이 구분되어 있는지",
+        "읽기, 단어, 문장 활동을 짧게 나누고 완료 표시를 남기기",
+        "주말에 가장 어려웠던 표현 한 가지를 다시 읽고 말해 보기",
+    ),
+)
+
+
 class _VisibleTextParser(HTMLParser):
     def __init__(self) -> None:
         super().__init__(convert_charrefs=True)
@@ -363,12 +564,16 @@ def read_workbook_cells(path: Path) -> list[str]:
     return values
 
 
-def signals_for(subject: str) -> tuple[TopicSignal, ...]:
-    if subject == "수학":
+def signals_for(config: CategoryConfig) -> tuple[TopicSignal, ...]:
+    if config.is_elementary and config.subject == "수학":
+        return ELEMENTARY_MATH_SIGNALS
+    if config.is_elementary and config.subject == "영어":
+        return ELEMENTARY_ENGLISH_SIGNALS
+    if config.subject == "수학":
         return MATH_SIGNALS
-    if subject == "영어":
+    if config.subject == "영어":
         return ENGLISH_SIGNALS
-    raise ValueError(f"지원하지 않는 과목: {subject}")
+    raise ValueError(f"지원하지 않는 과목: {config.subject}")
 
 
 def select_signals(raw_html: str, config: CategoryConfig, local: str) -> SourceSelection:
@@ -376,12 +581,18 @@ def select_signals(raw_html: str, config: CategoryConfig, local: str) -> SourceS
     # locality, paragraph, sentence, or markup from it is carried into a page.
     source_text = visible_source_text(raw_html).casefold()
     ranked: list[tuple[int, int, TopicSignal]] = []
-    for signal in signals_for(config.subject):
+    for signal in signals_for(config):
         score = sum(source_text.count(keyword.casefold()) for keyword in signal.keywords)
         tie_breaker = stable_number(config.category, local, signal.code, "source-signal")
         ranked.append((-score, tie_breaker, signal))
     ranked.sort(key=lambda item: (item[0], item[1]))
-    chosen = [item[2] for item in ranked[:3]]
+    if config.is_elementary and config.subject == "수학":
+        process_codes = {"elementary_explanation", "elementary_math_review"}
+        curriculum = [item[2] for item in ranked if item[2].code not in process_codes]
+        process = [item[2] for item in ranked if item[2].code in process_codes]
+        chosen = [*curriculum[:2], process[0]]
+    else:
+        chosen = [item[2] for item in ranked[:3]]
     return SourceSelection(chosen[0], chosen[1], chosen[2])
 
 
@@ -400,6 +611,27 @@ def middle_school_names(row: dict[str, str]) -> list[str]:
             continue
         result.append(name)
     return result
+
+
+def elementary_school_names(row: dict[str, str]) -> list[str]:
+    """Normalize the elementary-school column without inventing a school reference."""
+    raw = row.get("타깃학교\n(초)", "").strip()
+    if not raw:
+        return []
+    raw = re.sub(r"([^\s,/·.]+)\s+초등학교(?=$|[\s,/·.])", r"\1초등학교", raw)
+    result: list[str] = []
+    for item in re.split(r"[,/·.\s]+", raw):
+        name = re.sub(r"초등학교$", "초", item.strip())
+        if len(name) < 2 or not name.endswith("초") or name in result:
+            continue
+        result.append(name)
+    return result
+
+
+def school_names_for(row: dict[str, str], config: CategoryConfig) -> list[str]:
+    if config.is_elementary:
+        return elementary_school_names(row)
+    return middle_school_names(row)
 
 
 def fit_meta(candidates: Iterable[str], title: str) -> str:
@@ -476,6 +708,30 @@ ENGLISH_CONTEXT_EVIDENCE: tuple[str, ...] = tuple(
     for item in CONTEXT_EVIDENCE
 )
 
+
+def elementary_context_text(value: str) -> str:
+    replacements = (
+        ("학교 범위표", "학교 진도표"),
+        ("시험지", "단원평가 자료"),
+        ("시험 직후", "단원평가 뒤"),
+        ("시험 전에", "다음 점검 전까지"),
+        ("시험 범위", "학교 학습 범위"),
+        ("시험일까지", "다음 점검일까지"),
+        ("시험까지", "다음 점검까지"),
+        ("학교 범위", "학교 진도"),
+    )
+    for source, target in replacements:
+        value = value.replace(source, target)
+    return value
+
+
+ELEMENTARY_MATH_CONTEXT_EVIDENCE: tuple[str, ...] = tuple(
+    elementary_context_text(item) for item in MATH_CONTEXT_EVIDENCE
+)
+ELEMENTARY_ENGLISH_CONTEXT_EVIDENCE: tuple[str, ...] = tuple(
+    elementary_context_text(item) for item in ENGLISH_CONTEXT_EVIDENCE
+)
+
 CONTEXT_DECISIONS: tuple[str, ...] = (
     "첫 설명을 시작할 지점",
     "혼자 연습할 분량",
@@ -532,6 +788,13 @@ CONTEXT_MOMENTS: tuple[str, ...] = (
     "이번 기록을 마무리할 때",
     "학습량이 부담스럽다고 느낄 때",
     "한 주 실행 기록을 모은 뒤",
+)
+
+ELEMENTARY_CONTEXT_DECISIONS: tuple[str, ...] = tuple(
+    elementary_context_text(item) for item in CONTEXT_DECISIONS
+)
+ELEMENTARY_CONTEXT_MOMENTS: tuple[str, ...] = tuple(
+    elementary_context_text(item) for item in CONTEXT_MOMENTS
 )
 
 
@@ -708,16 +971,27 @@ def context_variation_sentence(
     seed = (config.category, local, purpose, ordinal)
     slot = CONTEXT_PURPOSE_SLOT.get(purpose, 0) + ordinal
     page_rotation = stable_number(config.category, local, "context-rotation")
-    evidence_bank = (
-        MATH_CONTEXT_EVIDENCE
-        if config.subject == "수학"
-        else ENGLISH_CONTEXT_EVIDENCE
-    )
+    if config.is_elementary:
+        evidence_bank = (
+            ELEMENTARY_MATH_CONTEXT_EVIDENCE
+            if config.subject == "수학"
+            else ELEMENTARY_ENGLISH_CONTEXT_EVIDENCE
+        )
+        decision_bank = ELEMENTARY_CONTEXT_DECISIONS
+        moment_bank = ELEMENTARY_CONTEXT_MOMENTS
+    else:
+        evidence_bank = (
+            MATH_CONTEXT_EVIDENCE
+            if config.subject == "수학"
+            else ENGLISH_CONTEXT_EVIDENCE
+        )
+        decision_bank = CONTEXT_DECISIONS
+        moment_bank = CONTEXT_MOMENTS
     evidence = evidence_bank[(page_rotation + slot) % len(evidence_bank)]
-    decision = CONTEXT_DECISIONS[
-        (page_rotation // 3 + slot * 5) % len(CONTEXT_DECISIONS)
+    decision = decision_bank[
+        (page_rotation // 3 + slot * 5) % len(decision_bank)
     ]
-    moment = CONTEXT_MOMENTS[(page_rotation // 7 + slot * 3) % len(CONTEXT_MOMENTS)]
+    moment = moment_bank[(page_rotation // 7 + slot * 3) % len(moment_bank)]
     consultation = f"{local} {config.grade_label} {config.subject} 상담"
     learning = f"{local} {config.grade_label} {config.subject} 학습"
     frames = (
@@ -1069,19 +1343,43 @@ def build_manuscript(
     local = row["근처 수업가능 동네"].strip()
     region, district = generator.service_area_parts(row)
     center = row.get("센터명", "").strip() or f"{local} 학습코칭센터"
-    schools = middle_school_names(row)
+    schools = school_names_for(row, config)
     if schools:
         named_schools = "·".join(schools[:2])
-        school_materials = f"{named_schools} 관련 자료"
-        school_range = f"{named_schools}의 최신 시험 범위"
-        school_schedule = f"{named_schools}의 시험 일정"
-        school_heading = f"{named_schools} 관련 자료"
+        if config.is_elementary:
+            school_materials = f"{named_schools} 학습 자료"
+            school_range = f"{named_schools}의 최근 단원 진도"
+            school_heading = f"{named_schools} 학습 자료"
+        else:
+            school_materials = f"{named_schools} 관련 자료"
+            school_range = f"{named_schools}의 최신 시험 범위"
+            school_heading = f"{named_schools} 관련 자료"
     else:
         named_schools = ""
-        school_materials = "학생이 준비한 학교 자료"
-        school_range = "최신 시험 범위"
-        school_schedule = "학생의 시험 일정"
-        school_heading = "학생의 실제 학교 자료"
+        if config.is_elementary:
+            school_materials = "학생이 준비한 학교 학습 자료"
+            school_range = "최근 단원 진도"
+            school_heading = "학생의 실제 학교 학습 자료"
+        else:
+            school_materials = "학생이 준비한 학교 자료"
+            school_range = "최신 시험 범위"
+            school_heading = "학생의 실제 학교 자료"
+    if config.is_elementary:
+        recent_records = "최근 단원평가 자료와 학습지"
+        diagnosis_records = "최근 단원평가 자료, 사용 교재, 학교 진도표"
+        first_week_records = "단원평가 자료와 교재"
+        schedule_text = "학교 학습 일정"
+        range_text = "단원평가 범위"
+        current_result = "현재 정답 수"
+        school_reference_items = "최근 단원평가 자료, 학교 학습지, 사용 교재"
+    else:
+        recent_records = "최근 시험지와 교재"
+        diagnosis_records = "최근 시험지, 사용 교재, 학교 범위표"
+        first_week_records = "시험지와 교재"
+        schedule_text = "학생의 시험 일정"
+        range_text = "학교 범위"
+        current_result = "현재 점수"
+        school_reference_items = f"{school_range}, 교과서 진도, 학교 프린트"
     fee_reference = (
         "공개된 교습비 자료" if row.get("센터 교습비", "").strip() else "교습비 확인 방법"
     )
@@ -1189,7 +1487,7 @@ def build_manuscript(
         choose(
             (
                 f"{title_object} 찾는다면 문제 수나 진도보다 최근 학습 기록에서 {primary.label}의 상태를 먼저 확인하는 것이 핵심입니다. {consultation_label}에서는 학생의 자료로 {primary.check}를 확인하고 필요한 보완 범위를 정해야 합니다.",
-                f"{title} 선택의 출발점은 현재 점수 자체보다 {primary.label}에서 반복되는 막힘을 찾는 일입니다. {consultation_label}에서는 학생이 {primary.check}를 최근 시험지와 교재에 표시하면 먼저 보완할 범위를 좁힐 수 있습니다.",
+                f"{title} 선택의 출발점은 {current_result} 자체보다 {primary.label}에서 반복되는 막힘을 찾는 일입니다. {consultation_label}에서는 학생이 {primary.check}를 {recent_records}에 표시하면 먼저 보완할 범위를 좁힐 수 있습니다.",
                 f"{title}에 관한 짧은 답은 {primary.label} 진단부터 시작하라는 것입니다. {consultation_label}에서 {primary.check} 살펴보면 새 진도와 복습의 순서를 나누기 쉽습니다.",
             ),
             config.category,
@@ -1227,7 +1525,7 @@ def build_manuscript(
     )
 
     section_two = optional_third(
-        f"{consultation_label}의 진단 자료로는 최근 시험지, 사용 교재, 학교 범위표가 유용합니다. {consultation_label}에서는 {school_materials}{eul_reul(school_materials)} 살펴보며 {primary.evidence} 확인하면 {primary.label}에서 막힌 원인을 구체적으로 설명할 수 있습니다.",
+        f"{consultation_label}의 진단 자료로는 {diagnosis_records}{i_ga(diagnosis_records)} 유용합니다. {consultation_label}에서는 {school_materials}{eul_reul(school_materials)} 살펴보며 {primary.evidence} 확인하면 {primary.label}에서 막힌 원인을 구체적으로 설명할 수 있습니다.",
         choose(
             (
                 f"{learning_label}에서 틀린 문제는 {primary.label}, {secondary.label}, {support.label} 가운데 시작 원인을 하나씩 붙여 분류해 보세요. {consultation_label}에서 이 구분을 공유하면 보완 순서를 구체적으로 질문할 수 있습니다.",
@@ -1265,7 +1563,7 @@ def build_manuscript(
     section_four = optional_third(
         choose(
             (
-                f"{consultation_label}에서 4주 계획을 논의한다면 첫째 주에는 시험지와 교재를 모아 {primary_and_secondary}에서 막힌 원인을 나눕니다. {learning_label}의 둘째 주에는 ‘{primary.practice}’를 시도한 뒤 학생이 해설 없이 설명할 수 있는지 확인합니다.",
+                f"{consultation_label}에서 4주 계획을 논의한다면 첫째 주에는 {first_week_records}{eul_reul(first_week_records)} 모아 {primary_and_secondary}에서 막힌 원인을 나눕니다. {learning_label}의 둘째 주에는 ‘{primary.practice}’를 시도한 뒤 학생이 해설 없이 설명할 수 있는지 확인합니다.",
                 f"{learning_label}의 첫 주는 {primary_and_secondary} 상태를 실제 자료로 확인하는 기간으로 잡을 수 있습니다. {consultation_label}에서는 확인 결과를 바탕으로 둘째 주에 ‘{primary.practice}’를 연습하고, 풀이 이유를 학생의 말로 설명하게 합니다.",
                 f"{consultation_label}에서 첫 두 주의 목표를 정할 때는 첫째 주에 {primary_and_secondary}의 막힘을 찾고, 둘째 주에 ‘{primary.practice}’를 적용해 설명과 풀이가 이어지는지 살펴보는 흐름을 검토할 수 있습니다.",
             ),
@@ -1285,9 +1583,9 @@ def build_manuscript(
         ),
         choose(
             (
-                f"이 4주 흐름은 {consultation_label}에서 비교할 계획 예시일 뿐, 고정 수업 약속이 아닙니다. {consultation_label}의 주차별 분량과 순서는 학생의 시험 일정과 시작 수준을 확인한 뒤 달리 정해야 합니다.",
+                f"이 4주 흐름은 {consultation_label}에서 비교할 계획 예시일 뿐, 고정 수업 약속이 아닙니다. {consultation_label}의 주차별 분량과 순서는 {schedule_text}{gwa_wa(schedule_text)} 시작 수준을 확인한 뒤 달리 정해야 합니다.",
                 f"{learning_label}의 4주 예시를 채택한다면 완료 기준도 함께 적어야 합니다. {learning_label}에서는 정답 수뿐 아니라 설명 가능 여부, 다시 푼 날짜, 같은 오류의 반복 여부를 남겨야 다음 조정 근거가 생깁니다.",
-                f"{local}에서 시험까지 4주가 남지 않은 {config.grade_label} 학생에게 {config.subject} 전 단원을 같은 비중으로 적용하기 어렵습니다. {consultation_label}에서 학교 범위와 남은 날을 확인하고 {primary.label} 관련 우선 단원부터 좁혀 보세요.",
+                f"{local}에서 다음 평가나 점검까지 4주가 남지 않은 {config.grade_label} 학생에게 {config.subject} 전 단원을 같은 비중으로 적용하기 어렵습니다. {consultation_label}에서 {range_text}{gwa_wa(range_text)} 남은 날을 확인하고 {primary.label} 관련 우선 단원부터 좁혀 보세요.",
             ),
             config.category,
             local,
@@ -1317,7 +1615,7 @@ def build_manuscript(
     )
 
     section_six = optional_third(
-        f"{consultation_label} 전에는 최근 시험지, 현재 교재, 학교 범위표, 일주일 학습 가능 시간을 준비해 주세요. {consultation_label}에서 {primary.label} 관련 문제 두세 개와 스스로 잘 풀린 문제 한 개를 함께 고르면 출발점을 균형 있게 설명할 수 있습니다.",
+        f"{consultation_label} 전에는 {diagnosis_records}, 일주일 학습 가능 시간을 준비해 주세요. {consultation_label}에서 {primary.label} 관련 문제 두세 개와 스스로 잘 풀린 문제 한 개를 함께 고르면 출발점을 균형 있게 설명할 수 있습니다.",
         f"{consultation_label}에서는 실제 수업 가능 학년과 시간, 사용할 교재, 과제량, 결석 시 보완, 피드백 주기, 그리고 {fee_reference}까지 차례로 확인하세요. {center}까지의 통학 동선과 귀가 시간도 {learning_label}{eul_reul(learning_label)} 지속할 수 있는지 판단하는 항목입니다. {checklist_note_open} {checklist_note_close}",
         choose(
             (
@@ -1400,15 +1698,15 @@ def build_manuscript(
     faq_bank = [
         (
             f"{consultation_label}에서 {primary.label}{eun_neun(primary.label)} 어떻게 확인하나요?",
-            f"{consultation_label} 전에는 최근 시험지와 교재에서 {primary.evidence}를 먼저 봅니다. {consultation_label}에서는 이 자료로 설명이 필요한 범위와 혼자 다시 풀 범위를 구분해 질문하면 됩니다.",
+            f"{consultation_label} 전에는 {recent_records}에서 {primary.evidence}를 먼저 봅니다. {consultation_label}에서는 이 자료로 설명이 필요한 범위와 혼자 다시 풀 범위를 구분해 질문하면 됩니다.",
         ),
         (
             f"{consultation_label}에 {school_materials}{eul_reul(school_materials)} 가져가야 하나요?",
-            f"{consultation_label}에서 필수라고 단정할 수는 없지만 {school_range}, 교과서 진도, 학교 프린트가 있으면 제안받은 계획을 더 구체적으로 비교할 수 있습니다. {consultation_label} 자료를 준비할 때 개인정보가 적힌 부분은 가리고 필요한 {config.subject} 학습 내용만 가져가도 됩니다.",
+            f"{consultation_label}에서 필수라고 단정할 수는 없지만 {school_reference_items}{i_ga(school_reference_items)} 있으면 제안받은 계획을 더 구체적으로 비교할 수 있습니다. {consultation_label} 자료를 준비할 때 개인정보가 적힌 부분은 가리고 필요한 {config.subject} 학습 내용만 가져가도 됩니다.",
         ),
         (
             f"{learning_label}의 첫 4주는 어떻게 계획하나요?",
-            f"{consultation_label}의 조건부 예시로 첫 주 진단, 둘째 주 ‘{primary.practice}’, 셋째 주 ‘{secondary.practice}’, 넷째 주 재확인 순서를 논의할 수 있습니다. {consultation_label}의 실제 분량은 학생의 시험 일정과 시작 수준을 확인한 뒤 정해야 합니다.",
+            f"{consultation_label}의 조건부 예시로 첫 주 진단, 둘째 주 ‘{primary.practice}’, 셋째 주 ‘{secondary.practice}’, 넷째 주 재확인 순서를 논의할 수 있습니다. {consultation_label}의 실제 분량은 {schedule_text}{gwa_wa(schedule_text)} 시작 수준을 확인한 뒤 정해야 합니다.",
         ),
         (
             f"{consultation_label}{eun_neun(consultation_label)} 어떤 학생에게 필요한가요?",
@@ -1530,10 +1828,10 @@ def masked_manuscript_shingles(
         row.get("센터 주소", "").strip(),
         config.category,
         config.subject_label,
-        f"중학교 {config.grade_number}학년",
+        f"{config.school_level} {config.grade_number}학년",
         config.grade_label,
         config.subject,
-        *middle_school_names(row),
+        *school_names_for(row, config),
     ]
     for token in sorted({item for item in mask_values if item}, key=len, reverse=True):
         authored = re.sub(re.escape(token), " 지역정보 ", authored, flags=re.I)
@@ -1713,13 +2011,13 @@ def validate_manuscripts(
         r"학생의\s+학습의|상담의\s+상담의|의\s+학습의",
         r"학생의\s+(?:수학|영어)\s+공부할\s+때는",
         r"상담\s+자리(?:친\s+뒤에는|서(?:\s|센터))",
-        r"중[12]\s+(?:수학|영어)\s+학생에게",
+        r"(?:중[1-3]|초[3-4])\s+(?:수학|영어)\s+학생에게",
         r"학생이\s+준비한\s+실제\s+학교\s+자료를\s+준비할\s+때",
-        r"의\s+중[12]\s+(?:수학|영어)\s+학습의",
-        r"중[12]\s+학생의\s+(?:수학|영어)\s+(?:수업\s+계획|공부\s+과정|복습\s+과정)의",
+        r"의\s+(?:중[1-3]|초[3-4])\s+(?:수학|영어)\s+학습의",
+        r"(?:중[1-3]|초[3-4])\s+학생의\s+(?:수학|영어)\s+(?:수업\s+계획|공부\s+과정|복습\s+과정)의",
         r"학습에서는\s+학습량만",
         r"확인하기[’']를\s+실천했는지\s+확인",
-        r"중[12]\s+학생[^.!?]{0,90}학생에게",
+        r"(?:중[1-3]|초[3-4])\s+학생[^.!?]{0,90}학생에게",
         r"상담\s+자리\s+안내가\s+특히\s+필요",
         r"확인했는지를\s+확인",
         r"수업\s+시간과\s+보완\s+방식은\s+같나요",
@@ -1904,6 +2202,7 @@ def configure_generator(
     config: CategoryConfig,
     manuscripts: dict[str, dict[str, str]],
     inventory: dict[int, str],
+    rows: list[dict[str, str]],
 ) -> None:
     generator.CATEGORY = config.category
     generator.SUBJECT_LABEL = config.subject_label
@@ -1912,8 +2211,8 @@ def configure_generator(
     generator.FOCUS_LABEL = config.focus_label
     generator.GRADE_NUMBER = config.grade_number
     generator.GRADE_EN = config.grade_en
-    generator.SCHOOL_LEVEL_NAME = "중학교"
-    generator.SCHOOL_KEYS = ("타깃학교\n(중)",)
+    generator.SCHOOL_LEVEL_NAME = config.school_level
+    generator.SCHOOL_KEYS = (config.school_key,)
     generator.PUBLISH_DATE = CONTENT_DATE
     generator.MODIFIED_DATE = CONTENT_DATE
     generator.PRESERVE_SECTION_ORDER = True
@@ -1922,17 +2221,34 @@ def configure_generator(
     generator.representative_asset = (
         lambda index, cfg=config, assets=inventory: representative_asset_for(cfg, assets, index)
     )
+    availability_key = f"가능학년\n({config.subject})"
+    target_grade = config.grade_label
+
+    def rows_for_category() -> list[dict[str, str]]:
+        rendered_rows: list[dict[str, str]] = []
+        for source_row in rows:
+            row = dict(source_row)
+            listed_grades = {
+                re.sub(r"\s+", "", value)
+                for value in re.findall(r"(?:초|중|고)\s*[1-6]", row.get(availability_key, ""))
+            }
+            if target_grade not in listed_grades:
+                row[availability_key] = ""
+            rendered_rows.append(row)
+        return rendered_rows
+
+    generator.load_center_rows = rows_for_category
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="스터디와와 중1·중2 수학/영어 지역 페이지를 생성합니다."
+        description="스터디와와 학년·과목별 지역 페이지를 생성합니다."
     )
     parser.add_argument(
         "--category",
         action="append",
         choices=[config.category for config in CONFIGS],
-        help="생성할 카테고리입니다. 여러 번 지정할 수 있으며, 생략하면 네 카테고리를 모두 생성합니다.",
+        help="생성할 카테고리입니다. 여러 번 지정할 수 있으며, 생략하면 전체 카테고리를 생성합니다.",
     )
     return parser.parse_args()
 
@@ -1949,6 +2265,7 @@ def main() -> None:
     # ItemList entities and schema school references all use the same facts.
     for row in rows:
         row["타깃학교\n(중)"] = "·".join(middle_school_names(row))
+        row["타깃학교\n(초)"] = "·".join(elementary_school_names(row))
     generator.load_center_rows = lambda data=rows: [dict(row) for row in data]
     inventory = representative_inventory()
     validate_static_assets(rows, inventory)
@@ -1977,10 +2294,10 @@ def main() -> None:
     )
 
     # Two passes ensure that reciprocal same-local category links are present even
-    # when all four category directories are created during this invocation.
+    # when all category directories are created during this invocation.
     for pass_number in (1, 2):
         for config in selected:
-            configure_generator(config, prepared[config.category], inventory)
+            configure_generator(config, prepared[config.category], inventory, rows)
             generator.main()
         print(f"generation pass={pass_number}/2 categories={len(selected)}")
 
