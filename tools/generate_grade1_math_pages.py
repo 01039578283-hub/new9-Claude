@@ -22,6 +22,11 @@ SUBJECT_EN = "MATH"
 FOCUS_LABEL = "내신·오답관리"
 GRADE_NUMBER = 1
 GRADE_EN = "GRADE 10"
+SCHOOL_LEVEL_NAME = "고등학교"
+SCHOOL_KEYS = ("타깃학교\n(초)", "타깃학교\n(중)", "타깃학교\n(고)")
+PUBLISH_DATE = shared.PUBLISH_DATE
+MODIFIED_DATE = shared.MODIFIED_DATE
+PRESERVE_SECTION_ORDER = False
 ZIP_PATH = (
     Path.home()
     / "Desktop"
@@ -30,6 +35,7 @@ ZIP_PATH = (
 )
 
 esc = shared.esc
+eul_reul = shared.eul_reul
 read_csv = shared.read_csv
 slug_ko = shared.slug_ko
 split_items = shared.split_items
@@ -166,6 +172,14 @@ def paragraph_list(value: str) -> list[str]:
     return [re.sub(r"\s+", " ", part).strip() for part in re.split(r"\n\s*\n", value) if part.strip()]
 
 
+def gwa_wa(value: str) -> str:
+    """Return the Korean conjunction particle that matches the final syllable."""
+    last = next((char for char in reversed(value.strip()) if "가" <= char <= "힣"), "")
+    if not last:
+        return "와"
+    return "과" if (ord(last) - ord("가")) % 28 else "와"
+
+
 def paragraph_signature(value: str, local: str) -> str:
     normalized = re.sub(r"\s+", " ", value).strip()
     normalized = re.sub(re.escape(local), "<LOCAL>", normalized)
@@ -190,7 +204,7 @@ def order_sections_for_page(
     sections: list[tuple[str, list[str]]],
     local: str,
 ) -> list[tuple[str, list[str]]]:
-    if len(sections) < 6:
+    if PRESERVE_SECTION_ORDER or len(sections) < 6:
         return sections
     flexible_count = 4
     patterns = list(permutations(range(flexible_count)))
@@ -201,11 +215,36 @@ def order_sections_for_page(
 
 def school_names(row: dict[str, str]) -> list[str]:
     result: list[str] = []
-    for key in ("타깃학교\n(초)", "타깃학교\n(중)", "타깃학교\n(고)"):
+    for key in SCHOOL_KEYS:
         for name in split_items(row.get(key, "")):
             if name not in result:
                 result.append(name)
     return result
+
+
+def service_area_parts(row: dict[str, str]) -> tuple[str, str]:
+    """Return reader-facing service geography without leaking address-road fields."""
+    region = row.get("지역", "").strip()
+    district = row.get("시or구", "").strip()
+    address = row.get("센터 주소", "").strip()
+    if address.startswith("세종특별자치시"):
+        return "세종특별자치시", "세종시"
+    if district.endswith(("로", "길")):
+        district = ""
+    return region, district
+
+
+def postal_address_parts(row: dict[str, str]) -> tuple[str, str]:
+    """Derive physical address fields from the verified full address string."""
+    address = row.get("센터 주소", "").strip()
+    tokens = address.split()
+    if not tokens:
+        return service_area_parts(row)
+    region = tokens[0]
+    if region == "세종특별자치시":
+        return region, region
+    locality = tokens[1] if len(tokens) > 1 else service_area_parts(row)[1]
+    return region, locality
 
 
 def compact_meta_description(
@@ -347,10 +386,10 @@ def page_ld(
     nearby: list[tuple[str, str]],
 ) -> dict:
     local = row["근처 수업가능 동네"].strip()
-    region = row.get("지역", "").strip()
-    district = row.get("시or구", "").strip()
+    region, district = service_area_parts(row)
     center = row.get("센터명", "").strip() or f"{local} 학습코칭센터"
     address = row.get("센터 주소", "").strip()
+    address_region, address_locality = postal_address_parts(row)
     schools = school_names(row)
     org_id = center_entity_id(center, address)
     page_id = f"{canonical}#webpage"
@@ -358,7 +397,7 @@ def page_ld(
     topics = [
         title,
         SUBJECT_LABEL,
-        f"고등학교 {GRADE_NUMBER}학년 {SUBJECT}",
+        f"{SCHOOL_LEVEL_NAME} {GRADE_NUMBER}학년 {SUBJECT}",
         f"{SUBJECT} 내신",
         "오답 재학습",
         region,
@@ -379,7 +418,6 @@ def page_ld(
     offer = {
         "@type": "Offer",
         "url": canonical,
-        "availability": "https://schema.org/InStock",
         "itemOffered": {"@id": service_id},
     }
     return {
@@ -403,7 +441,7 @@ def page_ld(
                 + [
                     {"@type": "WebPageElement", "name": "센터 위치 안내"},
                     {"@type": "WebPageElement", "name": "자주 묻는 질문"},
-                    {"@type": "WebPageElement", "name": "학부모 상담 후기"},
+                    {"@type": "WebPageElement", "name": "학부모 상담 상황 예시"},
                 ],
             },
             {
@@ -443,14 +481,13 @@ def page_ld(
                 "@id": org_id,
                 "name": center,
                 "alternateName": SITE_NAME,
-                "url": canonical,
-                "telephone": PHONE_DISPLAY,
+                "url": org_id,
                 "image": [rep_image, center_image, map_image],
                 "address": {
                     "@type": "PostalAddress",
                     "streetAddress": address,
-                    "addressLocality": district,
-                    "addressRegion": region,
+                    "addressLocality": address_locality,
+                    "addressRegion": address_region,
                     "addressCountry": "KR",
                 },
                 "areaServed": {
@@ -474,7 +511,7 @@ def page_ld(
                 },
                 "audience": {
                     "@type": "EducationalAudience",
-                    "educationalRole": f"고등학교 {GRADE_NUMBER}학년 학생",
+                    "educationalRole": f"{SCHOOL_LEVEL_NAME} {GRADE_NUMBER}학년 학생",
                 },
                 "about": [{"@type": "Thing", "name": topic} for topic in topics[:5]],
                 "mentions": [{"@type": "Thing", "name": topic} for topic in topics[5:]],
@@ -487,6 +524,8 @@ def page_ld(
                 "description": summary,
                 "image": [rep_image, center_image, map_image],
                 "inLanguage": "ko-KR",
+                "datePublished": PUBLISH_DATE,
+                "dateModified": MODIFIED_DATE,
                 "mainEntityOfPage": {"@id": page_id},
                 "author": {"@id": org_id},
                 "publisher": {"@id": org_id},
@@ -655,7 +694,7 @@ def detail_page(
         for i, (question, answer) in enumerate(faqs)
     )
     review_html = "\n".join(
-        f'<article class="review-card"><span class="tag">학부모 상담 후기</span><p>{esc(review)}</p></article>'
+        f'<article class="review-card"><span class="tag">상담 상황 예시</span><p>{esc(review)}</p></article>'
         for review in reviews
     )
     schools = school_names(row)
@@ -680,6 +719,10 @@ def detail_page(
         "고1영어학원": "고1 영어학원",
         "고2수학학원": "고2 수학학원",
         "고2영어학원": "고2 영어학원",
+        "중1수학학원": "중1 수학학원",
+        "중1영어학원": "중1 영어학원",
+        "중2수학학원": "중2 수학학원",
+        "중2영어학원": "중2 영어학원",
     }
     for category, label in subject_labels.items():
         if category == CATEGORY:
@@ -697,13 +740,12 @@ def detail_page(
                 f'<a href="../../../전국학원/{category}/{slug}/index.html"><strong>{esc(local)} {esc(category)}</strong><small>같은 동네 전국학원 안내</small></a>'
             )
 
-    region = row.get("지역", "").strip()
-    district = row.get("시or구", "").strip()
+    region, district = service_area_parts(row)
     center = row.get("센터명", "").strip()
     address = row.get("센터 주소", "").strip()
     grade = row.get(f"가능학년\n({SUBJECT})", "").strip() or "상담 시 확인"
     registration = row.get("교육지원청 등록번호", "").strip()
-    education_name = row.get("교육지원청명칭", "").strip()
+    education_name = re.sub(r"\s+", " ", row.get("교육지원청명칭", "")).strip()
 
     body = f"""{nav_html(3, PARENT)}
   <main>
@@ -728,6 +770,19 @@ def detail_page(
       <p class="lead">{esc(center)}의 위치와 {esc(local)} 생활권을 기준으로 {esc(SUBJECT_LABEL)} 상담 정보를 확인합니다. 방문 전 실제 이동 동선과 상담 가능 시간을 함께 확인해 주세요.</p>
     </section>
 
+    <section class="section answer-section" aria-labelledby="quick-answer-title">
+      <div class="section-head">
+        <p class="eyebrow">QUICK ANSWER</p>
+        <h2 id="quick-answer-title">{esc(title)} 핵심 답변</h2>
+      </div>
+      <div class="answer-list">
+        <article class="answer-item">
+          <p class="q">{esc(local)}에서 {esc(SUBJECT_LABEL)}학원을 선택하기 전 무엇을 먼저 확인해야 하나요?</p>
+          <p class="a">{esc(summary)}</p>
+        </article>
+      </div>
+    </section>
+
     <section class="section manuscript-section">
       <div class="section-head">
         <p class="eyebrow">LOCAL STUDY GUIDE</p>
@@ -741,12 +796,12 @@ def detail_page(
       <div class="section-head">
         <p class="eyebrow">CENTER &amp; SCHOOL</p>
         <h2>{esc(local)} 센터·수업 가능 학교 정보</h2>
-        <p class="lead">센터정보 정리 자료에 등록된 내용만 반영했습니다. 실제 수업 가능 여부와 시간표는 상담 시 확인해 주세요.</p>
+        <p class="lead">{esc(local)} 상담에 필요한 센터 위치, 등록 학원명, 가능 학년과 학교 정보를 확인된 범위에서 정리했습니다. 반 편성과 시간표는 상담 시 다시 확인해 주세요.</p>
       </div>
       <div class="card-grid">
         <article class="info-card"><span class="tag">센터</span><h3>{esc(center)}</h3><p>{esc(address)}</p></article>
-        <article class="info-card"><span class="tag">가능 학년</span><h3>{esc(SUBJECT)} {esc(grade)}</h3><p>현재 학년과 학교 진도에 맞는 반 편성 여부를 상담에서 확인합니다.</p></article>
-        <article class="info-card"><span class="tag">교육지원청</span><h3>{esc(education_name or '등록 정보')}</h3><p>{esc(registration or '상담 시 등록 정보를 확인해 주세요.')}</p></article>
+        <article class="info-card"><span class="tag">가능 학년</span><h3>{esc(SUBJECT)} {esc(grade)}</h3><p>{esc(local)}에서 {esc(SUBJECT_LABEL)} 진도와 현재 교재에 맞는 수업 가능 여부를 상담에서 확인합니다.</p></article>
+        <article class="info-card"><span class="tag">등록 학원명</span><h3>{esc(education_name or '등록 정보')}</h3><p>{esc(registration or '상담 시 등록 정보를 확인해 주세요.')}</p></article>
       </div>
       <p class="lead" style="margin-top:18px;">수업 가능 학교 참고</p>
       <div class="chip-list">{school_html}</div>
@@ -763,8 +818,9 @@ def detail_page(
 
     <section class="section">
       <div class="section-head">
-        <p class="eyebrow">PARENT REVIEW</p>
-        <h2>{esc(local)} {esc(SUBJECT_LABEL)} 상담 후기</h2>
+        <p class="eyebrow">CONSULTATION SCENARIO</p>
+        <h2>{esc(local)} {esc(SUBJECT_LABEL)} 학부모 상담 상황 예시</h2>
+        <p class="lead">아래 두 장면은 {esc(local)} {esc(SUBJECT_LABEL)} 상담 전에 준비할 자료와 질문을 정리한 점검 예시입니다.</p>
       </div>
       <div class="review-grid">{review_html}</div>
     </section>
@@ -772,7 +828,7 @@ def detail_page(
     <section class="section">
       <div class="section-head">
         <p class="eyebrow">RELATED ACADEMIES</p>
-        <h2>{esc(local)}와 주변 학원 페이지</h2>
+        <h2>{esc(local)}{gwa_wa(local)} 주변 학원 페이지</h2>
         <p class="lead">같은 동네의 다른 학습관리 안내와 인근 {esc(SUBJECT_LABEL)}학원 페이지를 한곳에 정리했습니다.</p>
       </div>
       <div class="link-grid">
@@ -840,6 +896,10 @@ def parent_hub(rows: list[dict[str, str]]) -> None:
         "고1영어학원": "고1 영어 어휘·문법·독해·내신 안내",
         "고2수학학원": "고2 수학 내신·오답·취약단원 학습관리 안내",
         "고2영어학원": "고2 영어 어휘·구문·독해·서술형 학습관리 안내",
+        "중1수학학원": "중1 수학 개념 연결·풀이 습관·오답 재학습 안내",
+        "중1영어학원": "중1 영어 어휘·문장 구조·독해 근거 학습 안내",
+        "중2수학학원": "중2 수학 개념 적용·서술형·누적 오답 관리 안내",
+        "중2영어학원": "중2 영어 어휘 누적·문법 적용·독해 근거 안내",
     }
     available_categories = [
         name
@@ -951,8 +1011,13 @@ def category_hub(rows: list[dict[str, str]]) -> None:
     out.write_text(page_shell(head, body), encoding="utf-8")
 
 
+def load_center_rows() -> list[dict[str, str]]:
+    """Load center facts; category wrappers may inject normalized copies."""
+    return read_csv(COMMON / "센터정보 정리.csv")
+
+
 def main() -> None:
-    rows = read_csv(COMMON / "센터정보 정리.csv")
+    rows = load_center_rows()
     manuscripts = load_manuscripts()
     locals_in_csv = {row["근처 수업가능 동네"].strip() for row in rows}
     if len(rows) != 371 or len(manuscripts) != 371:
