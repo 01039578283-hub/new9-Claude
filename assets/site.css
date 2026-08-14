@@ -1474,7 +1474,7 @@ h3,
     left: 0;
     width: 100%;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     align-items: stretch;
     gap: 8px;
     padding-top: 8px;
@@ -1493,10 +1493,6 @@ h3,
     padding: 10px 12px;
     box-shadow: none;
     backdrop-filter: none;
-  }
-
-  .floating-cta a[href^="sms:"] {
-    display: none;
   }
 
   .floating-cta a:last-child {
