@@ -8,6 +8,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 import generate_middle_math_pages as shared
+from add_subject_anchor_tocs import enhance_detail_html
 
 
 SITE = shared.SITE
@@ -857,7 +858,7 @@ def detail_page(
     </section>
   </main>
 {footer_html(3)}"""
-    return page_shell(head, body)
+    return enhance_detail_html(page_shell(head, body))
 
 
 def hub_ld(name: str, canonical: str, description: str, items: list[dict]) -> dict:
