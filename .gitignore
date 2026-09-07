@@ -4,5 +4,10 @@ __pycache__/
 .env.local
 node_modules/
 
+# Retain release evidence; temporary plans and public checks stay local.
+tools/reports/*
+!tools/reports/title-suffix-audit.json
+!tools/reports/title-suffix-local-verification.json
+
 .vercel
 .env*
