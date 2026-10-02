@@ -1,0 +1,34 @@
+/* Scoped to the reviewed high-school math guides. */
+.high-math-page { min-width: 0; }
+.high-math-page .page-hero { padding-top: 42px; padding-bottom: 26px; }
+.high-math-page .page-hero > .eyebrow,
+.high-math-page .page-hero > .lead { width: min(var(--max),100%); max-width: var(--max); margin-left: auto; margin-right: auto; }
+.high-math-page .page-hero > .eyebrow { display: flex; }
+.high-math-page .page-hero h1 { max-width: var(--max); text-align: left; }
+.high-math-page .high-math-jump { width: min(var(--max),calc(100% - 40px)); margin: 24px auto 0; display: flex; gap: 10px; flex-wrap: wrap; padding: 0 0 24px; }
+.high-math-jump a { border: 1px solid var(--gold-line); padding: 10px 14px; border-radius: 6px; background: var(--card); font-weight: 650; }
+.high-math-page #center-information { margin-top: 18px; padding-top: 0; }
+.high-math-page .grade-status { padding: 18px; border-left: 4px solid var(--gold); background: var(--card); line-height: 1.8; }
+.high-math-page [data-grade-status="not_listed"], .high-math-page [data-grade-status="unknown"] { border-color: #955f28; background: #fff4e2; }
+.high-math-page .contact-note { font-size: 14px; color: var(--ink-soft); line-height: 1.8; }
+.high-math-page .center-media-details { border: 1px solid var(--line); border-radius: 6px; background: var(--card); }
+.high-math-page .center-media-details summary { padding: 20px; cursor: pointer; font-weight: 700; line-height: 1.7; }
+.high-math-page .center-media-details > .media-row { padding: 12px; }
+.high-math-page .center-media-details > .lead { padding: 0 18px 18px; }
+.high-math-page .center-media-details img { width: 100%; height: auto; }
+.high-math-page .consultation-checklist { padding-left: 24px; }
+.high-math-page .consultation-checklist li { margin: 0 0 16px; line-height: 1.9; }
+.high-math-page .section:target { scroll-margin-top: 100px; }
+.high-math-page #study-guide:target,
+.high-math-page #study-guide [id]:target { scroll-margin-top: 100px; }
+.high-math-page a:focus-visible, .high-math-page summary:focus-visible { outline: 3px solid #735415; outline-offset: 4px; }
+@media (max-width: 640px) {
+  .high-math-page .high-math-jump { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; }
+  .high-math-page .high-math-jump a { font-size: 14px; text-align: center; }
+  .high-math-page .grade-status { padding: 14px; font-size: 15px; }
+  .high-math-page .card-grid { grid-template-columns: minmax(0,1fr); }
+  .high-math-page .info-card { min-width: 0; }
+  .high-math-page .hero-actions a { min-height: 44px; }
+  .high-math-page #study-guide:target,
+  .high-math-page #study-guide [id]:target { scroll-margin-top: 180px; }
+}

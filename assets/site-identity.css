@@ -1,0 +1,11 @@
+/* Shared site identity; the existing mobile consultation bar keeps its layout. */
+.site-footer-info { max-width: 640px; }
+.site-footer-brand { display: inline-flex; align-items: center; min-height: 44px; color: var(--ink); font-size: 19px; font-weight: 800; }
+.site-footer-info p { margin-top: 8px; line-height: 1.8; }
+.site-footer-links { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 18px; }
+.site-footer-links a { display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; text-decoration: underline; text-underline-offset: 4px; color: var(--gold-text); font-size: 13px; }
+.footer[data-site-identity] { padding-bottom: 24px; }
+@media (max-width: 640px) {
+  .site-footer-links { gap: 6px 16px; }
+  .footer[data-site-identity] { padding-bottom: 16px; }
+}

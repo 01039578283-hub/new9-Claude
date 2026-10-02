@@ -1,0 +1,2 @@
+# Keep reviewed snapshot bytes identical on Windows and deployment hosts.
+* -text

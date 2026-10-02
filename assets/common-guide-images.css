@@ -1,0 +1,15 @@
+/* Match the existing picture breakpoint using the selected file's dimensions. */
+picture[data-common-guide] {
+  display: block;
+  --common-guide-ratio: var(--common-guide-desktop-ratio);
+}
+
+.media-row .frame picture[data-common-guide] img {
+  aspect-ratio: var(--common-guide-ratio);
+}
+
+@media (max-width: 640px) {
+  picture[data-common-guide] {
+    --common-guide-ratio: var(--common-guide-mobile-ratio);
+  }
+}
