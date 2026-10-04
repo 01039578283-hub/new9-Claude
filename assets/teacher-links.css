@@ -1,0 +1,21 @@
+/* Shared navigation and links to workbook-matched teacher branches. */
+.nav-links[data-teacher-menu] { flex-wrap: wrap; gap: 4px 18px; }
+.teacher-link-box { display: flex; gap: 24px; align-items: center; justify-content: space-between; padding: 24px 28px; border: 1px solid var(--gold-line); background: var(--card); }
+.teacher-link-box > div { max-width: 690px; }
+.teacher-link-box h3 { margin: 5px 0 8px; font-size: 21px; line-height: 1.5; }
+.teacher-link-box p { font-size: 14px; line-height: 1.8; color: var(--ink-soft); }
+.teacher-link-box .teacher-link-kicker { color: var(--gold-text); font-size: 12px; font-weight: 700; }
+.teacher-link-box > a { flex-shrink: 0; }
+@media (max-width: 760px) {
+  html { scroll-padding-top: calc(124px + env(safe-area-inset-top)); }
+  .nav:has([data-teacher-menu]) { flex-direction: column; align-items: stretch; gap: 0; padding: 8px 0; }
+  .nav-links[data-teacher-menu] { justify-content: space-between; gap: 2px 10px; }
+  .teacher-link-box { flex-direction: column; align-items: stretch; padding: 22px; gap: 14px; }
+  .teacher-link-box h3 { font-size: 19px; }
+}
+@media (max-width: 520px) {
+  html { scroll-padding-top: calc(154px + env(safe-area-inset-top)); }
+  .nav:has([data-teacher-menu]) { padding: 8px max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left)); }
+  .nav-links[data-teacher-menu] { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 6px; }
+  .nav-links[data-teacher-menu] a:nth-child(n) { grid-column: auto; }
+}

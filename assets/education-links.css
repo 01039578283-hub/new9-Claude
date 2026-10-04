@@ -1,0 +1,24 @@
+/* Education reading links and the seven-item shared menu. */
+.nav-links[data-education-menu] { flex-wrap:wrap; gap:4px 16px; }
+.education-link-box { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:28px; border:1px solid var(--gold-line); background:var(--card); }
+.education-link-box > div { max-width:740px; min-width:0; }
+.education-link-box h3 { margin:6px 0 12px; font-size:20px; line-height:1.5; }
+.education-kicker { color:var(--gold-text); font-size:12px; font-weight:750; letter-spacing:.06em; }
+.education-read-links { display:grid; gap:6px; }
+.education-read-link { display:block; min-height:44px; padding:8px 0; color:var(--ink-soft); font-size:14px; line-height:1.7; text-decoration:underline; text-underline-offset:4px; overflow-wrap:anywhere; }
+.education-read-link span { color:var(--gold-text); }
+.education-link-box > .btn { flex-shrink:0; }
+@media(max-width:760px) {
+ html { scroll-padding-top:calc(152px + env(safe-area-inset-top)); }
+ .nav:has([data-education-menu]) { flex-direction:column; align-items:stretch; gap:0; padding:8px 0; }
+ .nav-links[data-education-menu] { justify-content:space-between; gap:2px 10px; }
+ .education-link-box { flex-direction:column; align-items:stretch; padding:22px; gap:18px; }
+}
+@media(max-width:520px) {
+ html { scroll-padding-top:calc(204px + env(safe-area-inset-top)); }
+ .nav-links[data-education-menu] { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px 6px; }
+ .nav-links[data-education-menu] a:nth-child(n) { grid-column:auto; justify-content:center; }
+ .nav-links[data-education-menu] a:last-child { grid-column:1/-1; }
+ .education-link-box h3 { font-size:18px; }
+}
+body { min-width:0; }
