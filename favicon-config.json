@@ -1,0 +1,9 @@
+{
+  "domain": "스터디와와.com",
+  "outputDirectory": ".public-release",
+  "previousBuildCommand": "node release-public-build.mjs && node wawa-analytics-build.mjs wawa-10 .public-release && node seo-descriptions.mjs --root=.public-release && node image-order-build.mjs && node crawl-content-build.mjs",
+  "assets": {
+    "assets/site-favicon.png": "e57853dfa063a849e54520f669f322425296701310d62127050548ccf4c6a114",
+    "assets/site-apple-touch-icon.png": "c441f193fb337686eff738c20951ab771c63e3439b1e2571352ff13b9f58e2c4"
+  }
+}

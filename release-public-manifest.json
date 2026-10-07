@@ -3,6 +3,8 @@
   "createdAt": "2026-10-07",
   "sitemapPages": 8571,
   "files": {
+    "assets/site-favicon.png": "e57853dfa063a849e54520f669f322425296701310d62127050548ccf4c6a114",
+    "assets/site-apple-touch-icon.png": "c441f193fb337686eff738c20951ab771c63e3439b1e2571352ff13b9f58e2c4",
     "assets/academy-directory.css": "bf37b83eb4c82657165747563e6dce0cdeadabff6d0d97098ef2752bb2f088d2",
     "assets/academy-directory.js": "ef1d911d6c4ab43e7ffc43c9cd8f459b62c6630fd74e7e02e9e69f486d65177b",
     "assets/center-visit.css": "186181ded7fea8f8cbfe5dac358db6bec17c40b4e930d4c2b84e0fe28351579b",
