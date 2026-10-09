@@ -5,14 +5,17 @@ const root=path.dirname(fileURLToPath(import.meta.url)),output=path.join(root,'.
 const esc=s=>String(s??'').replaceAll('&','&amp;').replaceAll('"','&quot;').replaceAll('<','&lt;');
 const ancestor=(n,test)=>{for(let p=n.parent;p;p=p.parent)if(test(p))return p;return null};
 const hash=b=>createHash('sha256').update(b).digest('hex');
+const photoLabel=p=>p.photoKind==='shared_illustration'?p.branch+' '+p.selected.label:p.center+' '+p.selected.label;
+const imageType=p=>({JPEG:'image/jpeg',PNG:'image/png',WEBP:'image/webp',GIF:'image/gif'}[p.selected.format]);
+function photoNodes(source){const nodes=parseHTML(source);for(const n of nodes.filter(n=>n.tag==='script'&&n.raw))n.attrs=parseHTML(source.slice(n.start,n.end).match(/^<script\b[^>]*>/i)[0])[0].attrs;return nodes;}
 function edit(s,edits){edits.sort((a,b)=>b.start-a.start||b.end-a.end);let previous=s.length+1;for(const e of edits){if(e.end>previous)throw Error('Overlapping photo edits');s=s.slice(0,e.start)+e.value+s.slice(e.end);previous=e.start}return s}
 function absolute(src,name){return new URL(src,'https://'+review.host+'/'+name).href}
-function imageFields(n,p){const photo=p.selected,url=absolute(photo.url,p.name),label=p.center+' '+photo.label;return {...n,name:label,url,contentUrl:url,width:photo.width,height:photo.height,...(n.caption?{caption:label}:{}),...(n.description?{description:label}:{})}}
+function imageFields(n,p){const photo=p.selected,url=absolute(photo.url,p.name),label=photoLabel(p);return {...n,name:label,url,contentUrl:url,width:photo.width,height:photo.height,...(n.caption?{caption:label}:{}),...(n.description?{description:label}:{}),...(n.encodingFormat?{encodingFormat:imageType(p)}:{})}}
 export function applyPhotoHTML(source,name,p){
  if(source.includes('data-thumbnail-bottom="20261010"'))return {html:source,unchanged:true};
- const nodes=parseHTML(source),main=nodes.find(n=>n.tag==='main');if(!main)throw Error('No main for reviewed photo page '+name);
+ const nodes=photoNodes(source),main=nodes.find(n=>n.tag==='main');if(!main)throw Error('No main for reviewed photo page '+name);
  const canon=nodes.find(n=>n.tag==='link'&&n.attrs.rel==='canonical')?.attrs.href;if(canon!==p.url)throw Error('Canonical changed '+name);
- const label=p.center+' '+p.selected.label,url=absolute(p.selected.url,name);
+ const label=photoLabel(p),url=absolute(p.selected.url,name);
  const hidden=nodes.filter(n=>n.tag==='img'&&n.attrs['data-media-role']==='representative'&&(n.attrs.hidden!==undefined||n.attrs['aria-hidden']==='true'||/display\s*:\s*none/i.test(n.attrs.style||'')));
  const edits=hidden.map(n=>({start:n.start,end:n.end,value:''}));
  const selected=nodes.filter(n=>n.tag==='img'&&ancestor(n,x=>x.tag==='main')&&absolute(n.attrs.src,name)===url);
@@ -23,20 +26,22 @@ export function applyPhotoHTML(source,name,p){
  }else{
   if(p.operation!=='add_bottom'||selected.length)throw Error('Unreviewed bottom insertion '+name);
   const photo=p.selected;
-  const figure='<figure class="crawl-registered-photo" data-thumbnail-photo="20261010"><a class="media-zoom-link" data-media-zoom data-full-width="'+photo.width+'" data-image-y="0" href="'+esc(photo.url)+'" aria-label="'+esc(label+' 원본 확대')+'"><img data-media-role="space" src="'+esc(photo.url)+'" alt="'+esc(label)+'" width="'+photo.width+'" height="'+photo.height+'" style="display:block; width:100%; height:auto; max-width:'+photo.width+'px; aspect-ratio:'+photo.width+' / '+photo.height+';" loading="lazy" decoding="async"></a><figcaption class="crawl-media-caption">'+esc(label)+' · 제공 사진입니다. 촬영 당시의 모습이며 현재 배치는 지점에 확인해 주세요.</figcaption></figure>';
+  const caption=p.photoKind==='shared_illustration'?' · 공용 안내사진입니다. 실제 지점의 공간과 배치는 상담 시 확인해 주세요.':' · 제공 사진입니다. 촬영 당시의 모습이며 현재 배치는 지점에 확인해 주세요.';
+  const figure='<figure class="crawl-registered-photo" data-thumbnail-photo="20261010"><a class="media-zoom-link" data-media-zoom data-full-width="'+photo.width+'" data-image-y="0" href="'+esc(photo.url)+'" aria-label="'+esc(label+' 원본 확대')+'"><img data-media-role="space" src="'+esc(photo.url)+'" alt="'+esc(label)+'" width="'+photo.width+'" height="'+photo.height+'" style="display:block; width:100%; height:auto; max-width:'+photo.width+'px; aspect-ratio:'+photo.width+' / '+photo.height+';" loading="lazy" decoding="async"></a><figcaption class="crawl-media-caption">'+esc(label+caption)+'</figcaption></figure>';
   edits.push({start:main.closeStart,end:main.closeStart,value:figure});
  }
  // Only image-family head tags are normalized; title, description, canonical and favicon remain byte-for-byte.
  const head=nodes.find(n=>n.tag==='head');if(!head)throw Error('No head');
  for(const n of nodes.filter(n=>n.tag==='meta'&&n.start<head.closeStart&&/^(?:og:image(?::.*)?|twitter:image(?::.*)?)$/i.test(n.attrs.property||n.attrs.name||'')))edits.push({start:n.start,end:n.end,value:''});
- const type={JPEG:'image/jpeg',PNG:'image/png',WEBP:'image/webp',GIF:'image/gif'}[p.selected.format];if(!type)throw Error('Unreviewed image format');
+ const type=imageType(p);if(!type)throw Error('Unreviewed image format');
  let metadata='<meta property="og:image" content="'+esc(url)+'"><meta property="og:image:secure_url" content="'+esc(url)+'"><meta property="og:image:width" content="'+p.selected.width+'"><meta property="og:image:height" content="'+p.selected.height+'"><meta property="og:image:type" content="'+type+'"><meta property="og:image:alt" content="'+esc(label)+'"><meta name="twitter:image" content="'+esc(url)+'"><meta name="twitter:image:alt" content="'+esc(label)+'">';
  if(p.operation==='add_bottom'&&!source.includes('href="'+review.css+'"'))metadata+='<link rel="stylesheet" href="'+review.css+'">';
  if(p.operation==='add_bottom'&&!source.includes('src="'+review.js+'"'))metadata+='<script defer src="'+review.js+'"></script>';
  edits.push({start:head.closeStart,end:head.closeStart,value:metadata});
  for(const n of nodes.filter(n=>n.tag==='script'&&n.attrs.type==='application/ld+json')){
   const raw=source.slice(n.start,n.end),j=JSON.parse(raw.replace(/^<script\b[^>]*>/i,'').replace(/<\/script>$/i,'')),graph=j['@graph']||[j];
-  const pageNodes=graph.filter(x=>[x['@type']].flat().some(t=>['WebPage','Article','CollectionPage'].includes(t))&&x.url===p.url);
+  const pageIDs=new Set(graph.filter(x=>x.url===p.url&&[x['@type']].flat().some(t=>['WebPage','CollectionPage'].includes(t))).map(x=>x['@id']).filter(Boolean));
+  const pageNodes=graph.filter(x=>[x['@type']].flat().some(t=>['WebPage','Article','CollectionPage'].includes(t))&&(x.url===p.url||pageIDs.has(x.mainEntityOfPage?.['@id'])));
   const primaryIDs=new Set(pageNodes.map(x=>x.primaryImageOfPage?.['@id']).filter(Boolean));let changed=false;
   for(let i=0;i<graph.length;i++){
    const x=graph[i];
@@ -46,7 +51,7 @@ export function applyPhotoHTML(source,name,p){
     if(x.primaryImageOfPage&&!x.primaryImageOfPage['@id']){x.primaryImageOfPage=typeof x.primaryImageOfPage==='string'?url:imageFields(x.primaryImageOfPage,{...p,name});changed=true}
     if(x.dateModified){x.dateModified=review.date;changed=true}
    }
-   if([x['@type']].flat().some(t=>['LocalBusiness','EducationalOrganization'].includes(t))&&x.name===p.center&&x.image){x.image=url;changed=true}
+   if(p.photoKind!=='shared_illustration'&&[x['@type']].flat().some(t=>['LocalBusiness','EducationalOrganization'].includes(t))&&x.name===p.center&&x.image){x.image=url;changed=true}
   }
   if(changed){const json=j['@graph']?{...j,'@graph':graph}:graph[0];edits.push({start:n.start,end:n.end,value:raw.replace(/(<script\b[^>]*>)[\s\S]*(<\/script>)$/i,(_,open,close)=>open+JSON.stringify(json)+close)})}
  }
