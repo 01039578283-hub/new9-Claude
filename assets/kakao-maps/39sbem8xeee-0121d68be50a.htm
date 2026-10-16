@@ -1,0 +1,20 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><meta name="referrer" content="strict-origin-when-cross-origin"><title>기흥구청점 카카오맵</title><style>html,body{margin:0;padding:0;overflow:hidden}body{font-family:sans-serif}.root_daum_roughmap{width:100%!important;border:0!important}.root_daum_roughmap .wrap_map{height:360px!important}.root_daum_roughmap .cont,.root_daum_roughmap .wrap_btn_roadview,.root_daum_roughmap .phone,.root_daum_roughmap .btn_big_map{display:none!important}.root_daum_roughmap .wrap_controllers{height:32px!important;min-height:32px!important;padding:0 12px!important;box-sizing:border-box;display:block!important}.root_daum_roughmap .tit_controllers{display:flex!important;align-items:center;height:32px;pointer-events:none}a,.roughmap_maker_label{pointer-events:none!important}.wrap_btn_zoom button{cursor:pointer}</style><script>(()=>{const key="39sbem8xeee",stamp="1791972264994";let queued=false,lastWidth=0,ready=false;function clean(){queued=false;document.querySelectorAll('a').forEach(a=>{for(const k of ['href','target','onclick','tabindex'])if(a.hasAttribute(k))a.removeAttribute(k);});document.querySelectorAll('.root_daum_roughmap > .cont,.root_daum_roughmap .wrap_btn_roadview').forEach(e=>e.remove());document.querySelectorAll('img[alt*="맵으로 이동"]').forEach(i=>i.alt='카카오맵');const root=document.getElementById('daumRoughmapContainer'+stamp),instance=window.daum?.roughmap?.instances?.[stamp];if(root&&instance?.jsMap){const w=root.clientWidth;if(w!==lastWidth){lastWidth=w;const center=instance.jsMap.getCenter();instance.jsMap.relayout();instance.jsMap.setCenter(center);}if(!ready&&root.querySelector('.map img')){ready=true;parent.postMessage({type:'study-kakao-ready',key},'*');}}}function queue(){if(!queued){queued=true;requestAnimationFrame(clean);}}new MutationObserver(queue).observe(document.documentElement,{childList:true,subtree:true});if('ResizeObserver'in window)new ResizeObserver(queue).observe(document.documentElement);document.addEventListener('click',e=>{if(!e.target.closest('.wrap_btn_zoom button')){e.preventDefault();e.stopImmediatePropagation();}},true);window.addEventListener('load',queue);})();</script></head><body><!--
+	* 카카오맵 - 약도서비스
+	* 한 페이지 내에 약도를 2개 이상 넣을 경우에는
+	* 약도의 수 만큼 소스를 새로 생성, 삽입해야 합니다.
+-->
+<!-- 1. 약도 노드 -->
+<div id="daumRoughmapContainer1791972264994" class="root_daum_roughmap root_daum_roughmap_landing"></div>
+
+<!-- 2. 설치 스크립트 -->
+<script charset="UTF-8" class="daum_roughmap_loader_script" src="https://t1.kakaocdn.net/kakaomapweb/roughmap/loader/prod/roughmapLoader.js"></script>
+
+<!-- 3. 실행 스크립트 -->
+<script charset="UTF-8">
+	new daum.roughmap.Lander({
+		"timestamp" : "1791972264994",
+		"key" : "39sbem8xeee",
+		"mapWidth" : "640",
+		"mapHeight" : "360"
+	}).render();
+</script></body></html>
